@@ -4,254 +4,497 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Choose Your Own Inference Stack | llm-d</title>
-<meta name="description" content="Interactive architecture decision tool and config generator for production LLM serving with llm-d">
+<meta name="description" content="Interactive architecture planning tool for production LLM serving with llm-d — a CNCF Sandbox project for distributed inference on Kubernetes">
 <link rel="icon" type="image/png" href="https://llm-d.ai/img/llm-d-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;700;900&family=Red+Hat+Text:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-/* ── Reset & Base ────────────────────────────────────────── */
+/* ====================================================================
+   CSS Custom Properties & Reset
+   ==================================================================== */
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --purple:#9b4d9b;--purple-dark:#7f317f;--purple-light:#f3e8f3;--purple-glow:rgba(155,77,155,0.15);
-  --blue:#2d7ff9;--blue-light:#e8f0fe;
-  --green:#1a9d5c;--green-light:#e6f7ed;
-  --orange:#e67e22;--orange-light:#fef4e8;
-  --red:#cc0000;--red-light:#fee8e8;
-  --cyan:#0ea5e9;
-  --bg:#fafafa;--surface:#ffffff;--surface-alt:#f5f5f7;
-  --text:#1a1a2e;--text-secondary:#555;--text-muted:#999;
-  --border:#e4e4e7;--border-light:#f0f0f2;
-  --shadow-sm:0 1px 3px rgba(0,0,0,0.06);
-  --shadow-md:0 4px 16px rgba(0,0,0,0.08);
-  --shadow-lg:0 8px 32px rgba(0,0,0,0.12);
-  --shadow-glow:0 0 40px var(--purple-glow);
-  --radius:12px;--radius-lg:20px;
-  --font-display:'Red Hat Display',sans-serif;
-  --font-body:'Red Hat Text',sans-serif;
-  --font-mono:'Red Hat Mono','SF Mono',monospace;
+  --primary:#3b82f6;--primary-dark:#2563eb;--primary-light:#60a5fa;--primary-glow:rgba(59,130,246,0.2);--primary-bg:rgba(59,130,246,0.08);
+  --accent:#8b5cf6;--accent-dark:#7c3aed;--accent-glow:rgba(139,92,246,0.2);
+  --green:#10b981;--green-dark:#059669;--green-bg:rgba(16,185,129,0.1);
+  --orange:#f59e0b;--orange-dark:#d97706;--orange-bg:rgba(245,158,11,0.1);
+  --red:#ef4444;--red-dark:#dc2626;--red-bg:rgba(239,68,68,0.1);
+  --cyan:#06b6d4;--cyan-dark:#0891b2;--cyan-bg:rgba(6,182,212,0.1);
+  --pink:#ec4899;--pink-bg:rgba(236,72,153,0.1);
+  --bg:#0a0e17;--bg-alt:#0f1520;--surface:#141b2d;--surface-alt:#1a2332;--surface-hover:#1e2a3e;
+  --text:#e2e8f0;--text-secondary:#94a3b8;--text-muted:#64748b;
+  --border:#1e293b;--border-light:#334155;--border-active:#475569;
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.4);
+  --shadow-lg:0 8px 32px rgba(0,0,0,0.5);
+  --shadow-glow:0 0 30px var(--primary-glow);
+  --radius:10px;--radius-lg:16px;--radius-xl:20px;
+  --font-display:'Red Hat Display',system-ui,sans-serif;
+  --font-body:'Red Hat Text',system-ui,sans-serif;
+  --font-mono:'Red Hat Mono','SF Mono','Fira Code',monospace;
   --transition:0.3s cubic-bezier(0.4,0,0.2,1);
+  --transition-fast:0.15s ease;
 }
-html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
-body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
-a{color:var(--purple);text-decoration:none;font-weight:500;transition:color var(--transition)}
-a:hover{color:var(--purple-dark);text-decoration:underline}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden;min-height:100vh}
+a{color:var(--primary-light);text-decoration:none;font-weight:500;transition:color var(--transition)}
+a:hover{color:var(--primary);text-decoration:underline}
+::selection{background:var(--primary);color:#fff}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--border-active)}
 
-/* ── Header ──────────────────────────────────────────────── */
+/* ====================================================================
+   Header
+   ==================================================================== */
 .site-header{
-  background:linear-gradient(135deg,#1a1a2e 0%,#2d1b4e 50%,#1a1a2e 100%);
-  color:#fff;padding:20px 0;position:sticky;top:0;z-index:100;
-  border-bottom:3px solid var(--purple);
-  backdrop-filter:blur(12px);
+  background:rgba(10,14,23,0.92);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:1000;
+  transition:box-shadow var(--transition);
 }
-.header-inner{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
-.header-brand{display:flex;align-items:center;gap:12px}
-.header-brand img{width:36px;height:36px}
-.header-brand span{font-family:var(--font-display);font-weight:700;font-size:1rem;opacity:0.9}
+.site-header.scrolled{box-shadow:0 4px 24px rgba(0,0,0,0.5)}
+.header-inner{max-width:1320px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.header-brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.header-brand:hover{text-decoration:none}
+.header-brand img{width:32px;height:32px;filter:drop-shadow(0 0 8px rgba(59,130,246,0.3))}
+.header-brand span{font-family:var(--font-display);font-weight:700;font-size:0.95rem;color:var(--text)}
 .header-nav{display:flex;align-items:center;gap:20px;font-size:0.85rem}
-.header-nav a{color:rgba(255,255,255,0.7);font-weight:500}
-.header-nav a:hover{color:#fff;text-decoration:none}
-.badge-cncf{display:inline-flex;align-items:center;gap:6px;font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.8);padding:4px 12px;border-radius:100px;border:1px solid rgba(255,255,255,0.15)}
+.header-nav a{color:var(--text-secondary);font-weight:500;transition:color var(--transition)}
+.header-nav a:hover{color:var(--text);text-decoration:none}
+.badge-cncf{
+  display:inline-flex;align-items:center;gap:6px;font-size:0.68rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.08em;
+  background:linear-gradient(135deg,rgba(59,130,246,0.15),rgba(139,92,246,0.15));
+  color:var(--primary-light);padding:5px 14px;border-radius:100px;
+  border:1px solid rgba(59,130,246,0.25);
+}
 
-/* ── Hero ────────────────────────────────────────────────── */
+/* ====================================================================
+   Hero
+   ==================================================================== */
 .hero{
-  background:linear-gradient(135deg,#1a1a2e 0%,#2d1b4e 40%,#3d1f5e 70%,#1a1a2e 100%);
-  color:#fff;padding:80px 24px 60px;text-align:center;position:relative;overflow:hidden;
+  background:var(--bg);position:relative;overflow:hidden;
+  padding:80px 24px 60px;text-align:center;
 }
 .hero::before{
   content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse at 50% 0%,rgba(155,77,155,0.3) 0%,transparent 60%);
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%,rgba(59,130,246,0.15) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 40% at 20% 80%,rgba(139,92,246,0.08) 0%,transparent 50%),
+    radial-gradient(ellipse 60% 40% at 80% 80%,rgba(6,182,212,0.06) 0%,transparent 50%);
   pointer-events:none;
 }
-.hero-content{max-width:800px;margin:0 auto;position:relative;z-index:1}
-.hero h1{font-family:var(--font-display);font-size:clamp(2rem,5vw,3.2rem);font-weight:900;line-height:1.15;margin-bottom:16px;
-  background:linear-gradient(135deg,#fff 0%,#d4a5d4 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.hero p{font-size:clamp(1rem,2vw,1.2rem);color:rgba(255,255,255,0.75);max-width:600px;margin:0 auto 32px;line-height:1.7}
-.hero-stats{display:flex;justify-content:center;gap:40px;flex-wrap:wrap;margin-top:24px}
+.hero-grid{
+  position:absolute;inset:0;opacity:0.03;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.1) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,0.1) 1px,transparent 1px);
+  background-size:60px 60px;
+  pointer-events:none;
+}
+.hero-content{max-width:860px;margin:0 auto;position:relative;z-index:1}
+.hero h1{
+  font-family:var(--font-display);font-size:clamp(2.2rem,5vw,3.6rem);font-weight:900;line-height:1.1;margin-bottom:16px;
+  background:linear-gradient(135deg,#fff 0%,var(--primary-light) 50%,var(--accent) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero p{font-size:clamp(1rem,2vw,1.15rem);color:var(--text-secondary);max-width:620px;margin:0 auto 36px;line-height:1.7}
+.hero-stats{display:flex;justify-content:center;gap:48px;flex-wrap:wrap;margin-top:24px}
 .hero-stat{text-align:center}
-.hero-stat .num{font-family:var(--font-display);font-size:2rem;font-weight:900;color:#fff}
-.hero-stat .label{font-size:0.8rem;color:rgba(255,255,255,0.6);margin-top:4px}
+.hero-stat .num{font-family:var(--font-display);font-size:2.2rem;font-weight:900;color:#fff;
+  background:linear-gradient(135deg,#fff,var(--primary-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-stat .label{font-size:0.78rem;color:var(--text-muted);margin-top:4px;font-weight:500}
 
-/* ── Main Container ──────────────────────────────────────── */
-.container{max-width:1200px;margin:0 auto;padding:0 24px}
+/* ====================================================================
+   Tab Navigation
+   ==================================================================== */
+.tab-nav{
+  position:sticky;top:61px;z-index:900;
+  background:rgba(10,14,23,0.95);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  padding:0 24px;
+}
+.tab-nav-inner{max-width:1320px;margin:0 auto;display:flex;gap:0;overflow-x:auto}
+.tab-btn{
+  font-family:var(--font-body);font-weight:600;font-size:0.88rem;
+  padding:16px 24px;border:none;background:transparent;
+  color:var(--text-muted);cursor:pointer;
+  border-bottom:2px solid transparent;
+  transition:all var(--transition);white-space:nowrap;
+  position:relative;
+}
+.tab-btn:hover{color:var(--text-secondary);background:rgba(255,255,255,0.02)}
+.tab-btn.active{color:var(--primary-light);border-bottom-color:var(--primary)}
+.tab-btn .tab-icon{margin-right:8px;font-size:1rem}
 
-/* ── Wizard ──────────────────────────────────────────────── */
-.wizard-section{padding:60px 24px}
-.wizard-container{max-width:720px;margin:0 auto}
+/* ====================================================================
+   Container & Layout
+   ==================================================================== */
+.container{max-width:1320px;margin:0 auto;padding:0 24px}
+.tab-content{display:none;padding:48px 0;min-height:60vh}
+.tab-content.active{display:block;animation:fadeSlideIn 0.4s ease}
+@keyframes fadeSlideIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ====================================================================
+   Buttons
+   ==================================================================== */
+.btn{
+  font-family:var(--font-body);font-weight:600;font-size:0.88rem;
+  padding:11px 24px;border-radius:var(--radius);border:none;cursor:pointer;
+  transition:all var(--transition);display:inline-flex;align-items:center;gap:8px;
+  text-decoration:none;line-height:1.4;
+}
+.btn:hover{text-decoration:none}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:0 4px 16px rgba(59,130,246,0.3)}
+.btn-primary:disabled{opacity:0.35;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-secondary{background:var(--surface-alt);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{background:var(--surface-hover);border-color:var(--border-light)}
+.btn-success{background:var(--green);color:#fff}
+.btn-success:hover{background:var(--green-dark);transform:translateY(-1px);box-shadow:0 4px 16px rgba(16,185,129,0.3)}
+.btn-outline{background:transparent;color:var(--primary-light);border:1px solid var(--primary)}
+.btn-outline:hover{background:var(--primary-bg);border-color:var(--primary-light)}
+.btn-danger{background:transparent;color:var(--red);border:1px solid rgba(239,68,68,0.3)}
+.btn-danger:hover{background:var(--red-bg)}
+.btn-sm{padding:7px 16px;font-size:0.82rem;border-radius:8px}
+.btn-lg{padding:14px 32px;font-size:0.95rem}
+.btn-icon{width:36px;height:36px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:8px}
+
+/* ====================================================================
+   Wizard: Progress Bar
+   ==================================================================== */
+.wizard-container{max-width:760px;margin:0 auto}
 .wizard-progress{display:flex;align-items:center;gap:0;margin-bottom:48px;padding:0 20px}
 .wizard-progress-step{display:flex;align-items:center;flex:1;position:relative}
 .wizard-progress-step:last-child{flex:0}
 .progress-dot{
-  width:40px;height:40px;border-radius:50%;
+  width:44px;height:44px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
   font-family:var(--font-display);font-weight:700;font-size:0.85rem;
   background:var(--surface);border:2px solid var(--border);color:var(--text-muted);
   transition:all var(--transition);z-index:2;position:relative;
   cursor:pointer;flex-shrink:0;
 }
-.progress-dot:hover{border-color:var(--purple-dark);color:var(--purple-dark)}
-.progress-line{flex:1;height:3px;background:var(--border);margin:0 -1px;transition:background var(--transition)}
-.wizard-progress-step.active .progress-dot{background:var(--purple);border-color:var(--purple);color:#fff;box-shadow:0 0 0 4px var(--purple-glow)}
+.progress-dot:hover{border-color:var(--primary);color:var(--primary-light)}
+.progress-line{flex:1;height:2px;background:var(--border);margin:0;transition:background var(--transition)}
+.wizard-progress-step.active .progress-dot{
+  background:var(--primary);border-color:var(--primary);color:#fff;
+  box-shadow:0 0 0 4px var(--primary-glow),0 0 20px var(--primary-glow);
+}
 .wizard-progress-step.completed .progress-dot{background:var(--green);border-color:var(--green);color:#fff}
 .wizard-progress-step.completed .progress-line{background:var(--green)}
 
-/* ── Question Card ───────────────────────────────────────── */
+/* ====================================================================
+   Wizard: Question Card
+   ==================================================================== */
 .question-card{
-  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);
   padding:48px;box-shadow:var(--shadow-md);
   animation:cardIn 0.4s cubic-bezier(0.4,0,0.2,1);
 }
 @keyframes cardIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-.question-number{font-family:var(--font-display);font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--purple);margin-bottom:8px}
+.question-number{font-family:var(--font-display);font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--primary-light);margin-bottom:8px}
 .question-title{font-family:var(--font-display);font-size:1.5rem;font-weight:900;color:var(--text);margin-bottom:8px}
-.question-subtitle{color:var(--text-secondary);font-size:0.95rem;margin-bottom:32px}
+.question-subtitle{color:var(--text-secondary);font-size:0.92rem;margin-bottom:32px}
 
-.options-grid{display:grid;gap:12px}
+.options-grid{display:grid;gap:10px}
 .option-btn{
   display:flex;align-items:center;gap:16px;padding:16px 20px;
-  background:var(--surface);border:2px solid var(--border);border-radius:var(--radius);
+  background:var(--surface-alt);border:2px solid var(--border);border-radius:var(--radius);
   cursor:pointer;transition:all var(--transition);text-align:left;
-  font-family:var(--font-body);font-size:0.95rem;color:var(--text);
+  font-family:var(--font-body);font-size:0.92rem;color:var(--text);
+  position:relative;
 }
-.option-btn:hover{border-color:var(--purple);background:var(--purple-light);transform:translateX(4px)}
-.option-btn.selected{border-color:var(--purple);background:var(--purple-light);box-shadow:0 0 0 3px var(--purple-glow)}
-.option-btn.selected::after{content:'\\2713';position:absolute;right:16px;color:var(--purple);font-weight:700;font-size:1.1rem}
-.option-btn{position:relative}
+.option-btn:hover{border-color:var(--primary);background:var(--primary-bg);transform:translateX(4px)}
+.option-btn.selected{border-color:var(--primary);background:var(--primary-bg);box-shadow:0 0 0 3px var(--primary-glow)}
+.option-btn.selected::after{content:'\2713';position:absolute;right:16px;color:var(--primary-light);font-weight:700;font-size:1.1rem}
 .option-icon{
   width:44px;height:44px;border-radius:10px;
   display:flex;align-items:center;justify-content:center;
-  font-size:1.3rem;flex-shrink:0;
-  background:var(--surface-alt);
+  font-size:1.2rem;flex-shrink:0;
+  background:rgba(255,255,255,0.04);border:1px solid var(--border);
+  font-family:var(--font-mono);font-weight:700;color:var(--primary-light);
 }
 .option-label{font-weight:600}
-.option-desc{font-size:0.82rem;color:var(--text-secondary);margin-top:2px}
+.option-desc{font-size:0.8rem;color:var(--text-secondary);margin-top:2px}
 
 .wizard-nav{display:flex;justify-content:space-between;margin-top:32px;gap:12px}
-.btn{
-  font-family:var(--font-body);font-weight:600;font-size:0.9rem;
-  padding:12px 28px;border-radius:10px;border:none;cursor:pointer;
-  transition:all var(--transition);display:inline-flex;align-items:center;gap:8px;
-}
-.btn-secondary{background:var(--surface-alt);color:var(--text);border:1px solid var(--border)}
-.btn-secondary:hover{background:var(--border);border-color:var(--text-muted)}
-.btn-primary{background:var(--purple);color:#fff}
-.btn-primary:hover{background:var(--purple-dark);transform:translateY(-1px);box-shadow:var(--shadow-md)}
-.btn-primary:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none}
-.btn-success{background:var(--green);color:#fff;animation:pulseGreen 2s ease-in-out infinite}
-.btn-success:hover{background:#158c50;transform:translateY(-1px);box-shadow:var(--shadow-md);animation:none}
-@keyframes pulseGreen{0%,100%{box-shadow:0 0 0 0 rgba(26,157,92,0.4)}50%{box-shadow:0 0 0 8px rgba(26,157,92,0)}}
 
-/* ── Results Section ─────────────────────────────────────── */
-.results-section{display:none;padding:60px 24px;animation:cardIn 0.5s ease}
-.results-section.visible{display:block}
+/* ====================================================================
+   Results Section
+   ==================================================================== */
+.results-panel{animation:fadeSlideIn 0.5s ease}
 .results-header{text-align:center;margin-bottom:48px}
-.results-header h2{font-family:var(--font-display);font-size:clamp(1.6rem,4vw,2.4rem);font-weight:900;margin-bottom:8px}
-.results-header p{color:var(--text-secondary);font-size:1.05rem;max-width:600px;margin:0 auto}
-.results-summary{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:48px;
-}
+.results-header h2{font-family:var(--font-display);font-size:clamp(1.6rem,4vw,2.4rem);font-weight:900;margin-bottom:8px;
+  background:linear-gradient(135deg,#fff,var(--primary-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.results-header p{color:var(--text-secondary);font-size:1rem;max-width:640px;margin:0 auto}
+.results-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:40px}
 .summary-chip{
   background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
   padding:16px;text-align:center;
 }
-.summary-chip .chip-label{font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);font-weight:600}
-.summary-chip .chip-value{font-family:var(--font-display);font-weight:700;font-size:1rem;margin-top:4px;color:var(--text)}
+.summary-chip .chip-label{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);font-weight:600}
+.summary-chip .chip-value{font-family:var(--font-display);font-weight:700;font-size:0.95rem;margin-top:4px;color:var(--text)}
 
-/* ── Architecture Diagram ────────────────────────────────── */
-.arch-panel{
-  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
-  padding:32px;margin-bottom:32px;box-shadow:var(--shadow-sm);
-}
-.arch-panel h3{font-family:var(--font-display);font-weight:700;font-size:1.2rem;margin-bottom:24px;display:flex;align-items:center;gap:8px}
-.arch-panel h3 .dot{width:12px;height:12px;border-radius:50%;display:inline-block}
-#archDiagram{width:100%;overflow-x:auto}
-#archDiagram svg{width:100%;height:auto;display:block}
-
-/* ── Legend ───────────────────────────────────────────────── */
-.arch-legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border-light)}
-.legend-item{display:flex;align-items:center;gap:6px;font-size:0.8rem;color:var(--text-secondary)}
-.legend-color{width:14px;height:14px;border-radius:4px}
-
-/* ── Metrics Cards ───────────────────────────────────────── */
-.metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:32px}
+/* ====================================================================
+   Metrics Grid
+   ==================================================================== */
+.metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:32px}
 .metric-card{
   background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-  padding:20px;
+  padding:20px;transition:border-color var(--transition);
 }
-.metric-card .mc-label{font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);font-weight:600}
-.metric-card .mc-value{font-family:var(--font-display);font-weight:900;font-size:1.6rem;margin:6px 0 4px;color:var(--text)}
-.metric-card .mc-detail{font-size:0.82rem;color:var(--text-secondary)}
+.metric-card:hover{border-color:var(--border-light)}
+.metric-card .mc-label{font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);font-weight:600}
+.metric-card .mc-value{font-family:var(--font-display);font-weight:900;font-size:1.5rem;margin:6px 0 4px;color:var(--text)}
+.metric-card .mc-detail{font-size:0.8rem;color:var(--text-secondary)}
+.metric-card.highlight{border-color:var(--primary);background:linear-gradient(135deg,var(--surface),rgba(59,130,246,0.05))}
 
-/* ── Config Panels ───────────────────────────────────────── */
-.config-tabs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:0;background:var(--surface-alt);border-radius:var(--radius) var(--radius) 0 0;padding:8px 8px 0;border:1px solid var(--border);border-bottom:none}
+/* ====================================================================
+   Architecture Panel
+   ==================================================================== */
+.arch-panel{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:32px;margin-bottom:24px;box-shadow:var(--shadow-sm);
+}
+.arch-panel h3{font-family:var(--font-display);font-weight:700;font-size:1.15rem;margin-bottom:20px;display:flex;align-items:center;gap:10px;color:var(--text)}
+.arch-panel h3 .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+#archDiagram{width:100%;overflow-x:auto}
+#archDiagram svg{width:100%;height:auto;display:block}
+.arch-legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:0.78rem;color:var(--text-secondary)}
+.legend-color{width:12px;height:12px;border-radius:3px}
+
+/* ====================================================================
+   Insights Panel
+   ==================================================================== */
+.insight-item{
+  padding:14px 18px;background:var(--surface-alt);border-radius:10px;
+  font-size:0.88rem;line-height:1.65;color:var(--text-secondary);
+  border-left:3px solid var(--primary);
+}
+
+/* ====================================================================
+   Config Tabs
+   ==================================================================== */
+.config-tabs{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:0;background:var(--surface-alt);border-radius:var(--radius) var(--radius) 0 0;padding:6px 6px 0;border:1px solid var(--border);border-bottom:none}
 .config-tab{
-  font-family:var(--font-body);font-weight:600;font-size:0.82rem;
-  padding:10px 18px;border:none;background:transparent;
+  font-family:var(--font-body);font-weight:600;font-size:0.8rem;
+  padding:10px 16px;border:none;background:transparent;
   color:var(--text-muted);cursor:pointer;border-radius:8px 8px 0 0;
   transition:all var(--transition);
 }
-.config-tab:hover{color:var(--text);background:rgba(0,0,0,0.03)}
-.config-tab.active{background:var(--surface);color:var(--purple);border:1px solid var(--border);border-bottom:1px solid var(--surface);margin-bottom:-1px}
+.config-tab:hover{color:var(--text-secondary);background:rgba(255,255,255,0.03)}
+.config-tab.active{background:var(--bg-alt);color:var(--primary-light);border:1px solid var(--border);border-bottom:1px solid var(--bg-alt);margin-bottom:-1px}
 .config-content{
-  background:#1e1e2e;color:#cdd6f4;border-radius:0 0 var(--radius) var(--radius);
+  background:#0c1222;color:#cdd6f4;border-radius:0 0 var(--radius) var(--radius);
   border:1px solid var(--border);border-top:1px solid var(--border);overflow:hidden;
-  position:relative;
+  position:relative;margin-bottom:24px;
 }
 .config-pane{display:none;padding:24px;overflow-x:auto}
 .config-pane.active{display:block}
-.config-pane pre{font-family:var(--font-mono);font-size:0.82rem;line-height:1.65;white-space:pre;margin:0;color:#cdd6f4}
+.config-pane pre{font-family:var(--font-mono);font-size:0.8rem;line-height:1.7;white-space:pre;margin:0;color:#cdd6f4}
 .config-pane .comment{color:#6c7086}
 .config-pane .key{color:#89b4fa}
 .config-pane .value{color:#a6e3a1}
 .config-pane .string{color:#f9e2af}
 .copy-btn{
-  position:absolute;top:12px;right:12px;
-  background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);
-  border:1px solid rgba(255,255,255,0.15);border-radius:8px;
-  padding:6px 14px;font-size:0.75rem;font-family:var(--font-body);font-weight:600;
+  position:absolute;top:10px;right:10px;
+  background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.5);
+  border:1px solid rgba(255,255,255,0.12);border-radius:8px;
+  padding:6px 14px;font-size:0.72rem;font-family:var(--font-body);font-weight:600;
   cursor:pointer;transition:all var(--transition);z-index:5;
 }
-.copy-btn:hover{background:rgba(255,255,255,0.2);color:#fff}
+.copy-btn:hover{background:rgba(255,255,255,0.15);color:#fff}
 .copy-btn.copied{background:var(--green);border-color:var(--green);color:#fff}
 
-/* ── Action Buttons ──────────────────────────────────────── */
+/* ====================================================================
+   Actions Bar
+   ==================================================================== */
 .results-actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:40px 0}
-.results-actions .btn{font-size:0.9rem;padding:14px 28px}
-.btn-outline{background:transparent;color:var(--purple);border:2px solid var(--purple)}
-.btn-outline:hover{background:var(--purple-light)}
 
-/* ── Footer ──────────────────────────────────────────────── */
+/* ====================================================================
+   Compare Tab
+   ==================================================================== */
+.compare-header{text-align:center;margin-bottom:40px}
+.compare-header h2{font-family:var(--font-display);font-size:1.8rem;font-weight:900;margin-bottom:8px;color:var(--text)}
+.compare-header p{color:var(--text-secondary);max-width:560px;margin:0 auto}
+.compare-selector{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:40px}
+.compare-chip{
+  padding:10px 20px;border-radius:100px;border:2px solid var(--border);
+  background:var(--surface);color:var(--text-secondary);
+  font-family:var(--font-body);font-weight:600;font-size:0.85rem;
+  cursor:pointer;transition:all var(--transition);
+}
+.compare-chip:hover{border-color:var(--primary);color:var(--text)}
+.compare-chip.selected{border-color:var(--primary);background:var(--primary-bg);color:var(--primary-light)}
+.compare-chip.selected.c2{border-color:var(--green);background:var(--green-bg);color:var(--green)}
+.compare-chip.selected.c3{border-color:var(--orange);background:var(--orange-bg);color:var(--orange)}
+.radar-container{display:flex;justify-content:center;margin-bottom:40px}
+.radar-container canvas{max-width:500px;width:100%}
+.compare-table{width:100%;border-collapse:collapse;margin-bottom:32px}
+.compare-table th,.compare-table td{
+  padding:14px 18px;text-align:left;border-bottom:1px solid var(--border);
+  font-size:0.88rem;
+}
+.compare-table th{
+  font-family:var(--font-display);font-weight:700;color:var(--text-muted);font-size:0.75rem;
+  text-transform:uppercase;letter-spacing:0.08em;
+  background:var(--surface);position:sticky;top:0;
+}
+.compare-table td{color:var(--text-secondary)}
+.compare-table tr:hover td{background:rgba(255,255,255,0.02)}
+.compare-table .col-label{font-weight:600;color:var(--text)}
+
+/* ====================================================================
+   Builder Tab
+   ==================================================================== */
+.builder-layout{display:flex;gap:20px;min-height:500px}
+.builder-toolbar{
+  width:200px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:16px;
+}
+.builder-toolbar h4{font-family:var(--font-display);font-weight:700;font-size:0.82rem;margin-bottom:16px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em}
+.builder-component{
+  padding:12px;margin-bottom:8px;border-radius:var(--radius);
+  border:1px solid var(--border);background:var(--surface-alt);
+  cursor:grab;transition:all var(--transition);
+  font-size:0.82rem;font-weight:600;color:var(--text-secondary);
+  display:flex;align-items:center;gap:8px;
+  user-select:none;
+}
+.builder-component:hover{border-color:var(--primary);background:var(--primary-bg);color:var(--text)}
+.builder-component:active{cursor:grabbing}
+.builder-component .bc-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;flex-shrink:0;font-weight:700}
+.builder-canvas{
+  flex:1;background:var(--surface);border:2px dashed var(--border);
+  border-radius:var(--radius-lg);position:relative;overflow:hidden;
+  min-height:500px;
+}
+.builder-canvas.drag-over{border-color:var(--primary);background:rgba(59,130,246,0.03)}
+.canvas-placeholder{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:var(--text-muted);gap:12px;pointer-events:none;
+}
+.canvas-placeholder .cp-icon{font-size:2.5rem;opacity:0.3}
+.canvas-placeholder .cp-text{font-size:0.9rem}
+.canvas-node{
+  position:absolute;padding:14px 18px;border-radius:var(--radius);
+  border:2px solid var(--border);background:var(--surface-alt);
+  cursor:move;z-index:10;min-width:120px;text-align:center;
+  transition:box-shadow var(--transition-fast);
+  user-select:none;
+}
+.canvas-node:hover{box-shadow:var(--shadow-md)}
+.canvas-node.dragging{z-index:100;box-shadow:var(--shadow-lg);opacity:0.9}
+.canvas-node .cn-label{font-weight:700;font-size:0.82rem;color:var(--text)}
+.canvas-node .cn-sub{font-size:0.7rem;color:var(--text-muted);margin-top:2px}
+.canvas-node .cn-remove{
+  position:absolute;top:-8px;right:-8px;width:20px;height:20px;
+  background:var(--red);color:#fff;border:none;border-radius:50%;
+  font-size:0.7rem;cursor:pointer;display:none;align-items:center;justify-content:center;
+  line-height:1;
+}
+.canvas-node:hover .cn-remove{display:flex}
+.canvas-connection{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5}
+.builder-output{margin-top:20px}
+.builder-mobile-msg{
+  display:none;text-align:center;padding:48px 24px;color:var(--text-muted);
+}
+.builder-mobile-msg .bmm-icon{font-size:2rem;margin-bottom:12px}
+
+/* ====================================================================
+   Gallery Tab
+   ==================================================================== */
+.gallery-header{text-align:center;margin-bottom:40px}
+.gallery-header h2{font-family:var(--font-display);font-size:1.8rem;font-weight:900;margin-bottom:8px;color:var(--text)}
+.gallery-header p{color:var(--text-secondary);max-width:560px;margin:0 auto}
+.gallery-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px;margin-bottom:40px}
+.gallery-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:28px;transition:all var(--transition);position:relative;overflow:hidden;
+}
+.gallery-card:hover{border-color:var(--border-light);transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.gallery-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--primary),var(--accent));
+  opacity:0;transition:opacity var(--transition);
+}
+.gallery-card:hover::before{opacity:1}
+.gc-badge{
+  display:inline-block;font-size:0.68rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.08em;padding:4px 12px;border-radius:100px;margin-bottom:12px;
+}
+.gc-badge.starter{background:var(--green-bg);color:var(--green)}
+.gc-badge.enterprise{background:var(--primary-bg);color:var(--primary-light)}
+.gc-badge.hyperscale{background:var(--accent-glow);color:var(--accent)}
+.gc-title{font-family:var(--font-display);font-weight:900;font-size:1.2rem;margin-bottom:8px;color:var(--text)}
+.gc-desc{font-size:0.88rem;color:var(--text-secondary);margin-bottom:20px;line-height:1.6}
+.gc-specs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px}
+.gc-spec{background:var(--surface-alt);border-radius:8px;padding:10px 12px}
+.gc-spec .spec-label{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);font-weight:600}
+.gc-spec .spec-value{font-family:var(--font-display);font-weight:700;font-size:0.9rem;margin-top:2px;color:var(--text)}
+.gc-components{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px}
+.gc-comp-tag{font-size:0.72rem;padding:4px 10px;border-radius:100px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text-secondary);font-weight:500}
+
+/* ====================================================================
+   Footer
+   ==================================================================== */
 .site-footer{
   text-align:center;padding:40px 24px;
   border-top:1px solid var(--border);color:var(--text-muted);font-size:0.82rem;
+  background:var(--bg-alt);
 }
-.site-footer a{color:var(--purple);font-weight:500}
-.footer-links{display:flex;justify-content:center;gap:24px;margin-bottom:12px;flex-wrap:wrap}
+.site-footer a{color:var(--primary-light);font-weight:500}
+.footer-links{display:flex;justify-content:center;gap:24px;margin-bottom:16px;flex-wrap:wrap}
 
-/* ── Responsive ──────────────────────────────────────────── */
+/* ====================================================================
+   Responsive
+   ==================================================================== */
+@media(max-width:900px){
+  .builder-layout{flex-direction:column}
+  .builder-toolbar{width:100%;display:flex;flex-wrap:wrap;gap:8px;padding:12px}
+  .builder-toolbar h4{width:100%;margin-bottom:8px}
+  .builder-component{flex:1;min-width:120px;margin-bottom:0}
+}
 @media(max-width:768px){
-  .hero{padding:48px 16px 40px}
+  .hero{padding:48px 16px 36px}
   .hero-stats{gap:24px}
   .question-card{padding:28px 20px}
   .wizard-progress{padding:0}
-  .progress-dot{width:32px;height:32px;font-size:0.75rem}
-  .arch-panel{padding:20px 12px}
-  .metrics-grid{grid-template-columns:1fr}
+  .progress-dot{width:36px;height:36px;font-size:0.78rem}
+  .arch-panel{padding:20px 14px}
+  .metrics-grid{grid-template-columns:1fr 1fr}
   .results-summary{grid-template-columns:repeat(2,1fr)}
   .config-tabs{overflow-x:auto;flex-wrap:nowrap}
+  .tab-btn{padding:14px 16px;font-size:0.82rem}
+  .gallery-grid{grid-template-columns:1fr}
+  .builder-canvas{min-height:400px}
+  .builder-desktop-only{display:none}
+  .builder-mobile-msg{display:block}
 }
 @media(max-width:480px){
   .results-summary{grid-template-columns:1fr}
   .hero-stats{flex-direction:column;gap:16px}
   .wizard-nav{flex-direction:column}
   .wizard-nav .btn{width:100%;justify-content:center}
+  .metrics-grid{grid-template-columns:1fr}
+  .gc-specs{grid-template-columns:1fr}
+  .compare-table{font-size:0.78rem}
+  .compare-table th,.compare-table td{padding:10px 12px}
 }
 </style>
 </head>
 <body>
 
-<!-- ── Header ─────────────────────────────────────────────── -->
-<header class="site-header">
+<!-- ================================================================
+     Header
+     ================================================================ -->
+<header class="site-header" id="siteHeader">
   <div class="header-inner">
     <a href="https://markellr-redhat.github.io/llm-d-content-hub/" class="header-brand">
       <img src="https://llm-d.ai/img/llm-d-icon.png" alt="llm-d">
@@ -260,176 +503,314 @@ a:hover{color:var(--purple-dark);text-decoration:underline}
     <nav class="header-nav">
       <a href="./blog/">Blog</a>
       <a href="https://llm-d.ai" target="_blank">llm-d.ai</a>
+      <a href="https://github.com/llm-d" target="_blank">GitHub</a>
       <span class="badge-cncf">CNCF Sandbox</span>
     </nav>
   </div>
 </header>
 
-<!-- ── Hero ────────────────────────────────────────────────── -->
+<!-- ================================================================
+     Hero
+     ================================================================ -->
 <section class="hero" id="hero">
+  <div class="hero-grid"></div>
   <div class="hero-content">
     <h1>Choose Your Own Inference Stack</h1>
-    <p>Answer 5 questions about your workload. Get a production-ready architecture diagram and deployment config for llm-d — free consulting in 60 seconds.</p>
+    <p>Plan, compare, and build production-ready LLM serving architectures with llm-d. Answer a few questions or explore on your own -- expert-level infrastructure decisions in minutes, not weeks.</p>
     <div class="hero-stats">
       <div class="hero-stat"><div class="num">5</div><div class="label">Decision Dimensions</div></div>
-      <div class="hero-stat"><div class="num">120+</div><div class="label">Configurations</div></div>
+      <div class="hero-stat"><div class="num">200+</div><div class="label">Configurations</div></div>
+      <div class="hero-stat"><div class="num">3</div><div class="label">Reference Stacks</div></div>
       <div class="hero-stat"><div class="num">0</div><div class="label">Vendor Lock-in</div></div>
     </div>
   </div>
 </section>
 
-<!-- ── Wizard ──────────────────────────────────────────────── -->
-<section class="wizard-section" id="wizard">
-  <div class="wizard-container">
-    <!-- Progress -->
-    <div class="wizard-progress" id="wizardProgress"></div>
-    <!-- Question area -->
-    <div id="questionArea"></div>
+<!-- ================================================================
+     Tab Navigation
+     ================================================================ -->
+<nav class="tab-nav" id="tabNav">
+  <div class="tab-nav-inner">
+    <button class="tab-btn active" data-tab="wizard"><span class="tab-icon">&#9670;</span>Wizard</button>
+    <button class="tab-btn" data-tab="compare"><span class="tab-icon">&#9878;</span>Compare Stacks</button>
+    <button class="tab-btn" data-tab="builder"><span class="tab-icon">&#9881;</span>Build Your Own</button>
+    <button class="tab-btn" data-tab="gallery"><span class="tab-icon">&#9733;</span>Stack Gallery</button>
   </div>
-</section>
+</nav>
 
-<!-- ── Results ─────────────────────────────────────────────── -->
-<section class="results-section" id="results">
+<!-- ================================================================
+     Tab: Wizard
+     ================================================================ -->
+<div class="tab-content active" id="tab-wizard">
   <div class="container">
-    <div class="results-header">
-      <h2>Your Recommended Architecture</h2>
-      <p id="resultsSubtitle"></p>
+    <div class="wizard-container">
+      <div class="wizard-progress" id="wizardProgress"></div>
+      <div id="questionArea"></div>
     </div>
+    <div id="resultsArea" style="display:none"></div>
+  </div>
+</div>
 
-    <!-- Selection Summary -->
-    <div class="results-summary" id="resultsSummary"></div>
+<!-- ================================================================
+     Tab: Compare Stacks
+     ================================================================ -->
+<div class="tab-content" id="tab-compare">
+  <div class="container">
+    <div class="compare-header">
+      <h2>Side-by-Side Stack Comparison</h2>
+      <p>Select 2 or 3 reference architectures to compare across cost, latency, throughput, complexity, and scalability.</p>
+    </div>
+    <div class="compare-selector" id="compareSelector"></div>
+    <div class="radar-container"><canvas id="radarCanvas" width="500" height="500"></canvas></div>
+    <div id="compareTableWrap"></div>
+  </div>
+</div>
 
-    <!-- Key Metrics -->
-    <div class="metrics-grid" id="metricsGrid"></div>
-
-    <!-- Architecture Diagram -->
-    <div class="arch-panel">
-      <h3><span class="dot" style="background:var(--purple)"></span> Architecture Diagram</h3>
-      <div id="archDiagram"></div>
-      <div class="arch-legend">
-        <div class="legend-item"><span class="legend-color" style="background:#6366f1"></span> Gateway</div>
-        <div class="legend-item"><span class="legend-color" style="background:#9b4d9b"></span> EPP (Routing)</div>
-        <div class="legend-item"><span class="legend-color" style="background:#2d7ff9"></span> Prefill Workers</div>
-        <div class="legend-item"><span class="legend-color" style="background:#1a9d5c"></span> Decode Workers</div>
-        <div class="legend-item"><span class="legend-color" style="background:#e67e22"></span> Monitoring</div>
-        <div class="legend-item"><span class="legend-color" style="background:#0ea5e9"></span> HPA / Autoscaler</div>
+<!-- ================================================================
+     Tab: Build Your Own
+     ================================================================ -->
+<div class="tab-content" id="tab-builder">
+  <div class="container">
+    <div class="compare-header">
+      <h2>Interactive Architecture Builder</h2>
+      <p>Drag components onto the canvas to design your own inference stack. Connections highlight compatibility.</p>
+    </div>
+    <div class="builder-desktop-only">
+      <div class="builder-layout">
+        <div class="builder-toolbar" id="builderToolbar">
+          <h4>Components</h4>
+        </div>
+        <div class="builder-canvas" id="builderCanvas">
+          <svg class="canvas-connection" id="canvasConnections"></svg>
+          <div class="canvas-placeholder" id="canvasPlaceholder">
+            <div class="cp-icon">+</div>
+            <div class="cp-text">Drag components here to start building</div>
+          </div>
+        </div>
       </div>
+      <div class="builder-output" id="builderOutput"></div>
     </div>
-
-    <!-- Recommendation Insights -->
-    <div class="arch-panel" id="insightsPanel" style="border-left:4px solid var(--purple)">
-      <h3><span class="dot" style="background:var(--orange)"></span> Key Recommendations</h3>
-      <ul id="insightsList" style="list-style:none;padding:0;display:grid;gap:12px"></ul>
-    </div>
-
-    <!-- Config Tabs -->
-    <div class="config-tabs" id="configTabs"></div>
-    <div class="config-content" id="configContent">
-      <button class="copy-btn" id="copyBtn" onclick="copyCurrentConfig()">Copy</button>
-    </div>
-
-    <!-- Actions -->
-    <div class="results-actions">
-      <button class="btn btn-primary" onclick="shareConfig()">Share This Config</button>
-      <button class="btn btn-outline" onclick="downloadBundle()">Download Config Bundle</button>
-      <button class="btn btn-secondary" onclick="startOver()">Start Over</button>
+    <div class="builder-mobile-msg">
+      <div class="bmm-icon">&#9881;</div>
+      <p>The Architecture Builder works best on desktop. Please visit on a larger screen for the drag-and-drop experience.</p>
+      <p style="margin-top:12px">In the meantime, try the <strong>Wizard</strong> or <strong>Stack Gallery</strong> tabs.</p>
     </div>
   </div>
-</section>
+</div>
 
-<!-- ── Footer ─────────────────────────────────────────────── -->
+<!-- ================================================================
+     Tab: Stack Gallery
+     ================================================================ -->
+<div class="tab-content" id="tab-gallery">
+  <div class="container">
+    <div class="gallery-header">
+      <h2>Reference Architecture Gallery</h2>
+      <p>Battle-tested deployment patterns. Click "Load This Stack" to populate the wizard with a preset configuration.</p>
+    </div>
+    <div class="gallery-grid" id="galleryGrid"></div>
+  </div>
+</div>
+
+<!-- ================================================================
+     Footer
+     ================================================================ -->
 <footer class="site-footer">
   <div class="footer-links">
-    <a href="https://markellr-redhat.github.io/llm-d-content-hub/">&larr; Back to Content Hub</a>
-    <a href="./blog/">Read the Blog Post</a>
+    <a href="https://markellr-redhat.github.io/llm-d-content-hub/">Back to Content Hub</a>
+    <a href="./blog/">Read the Blog</a>
     <a href="https://llm-d.ai" target="_blank">llm-d.ai</a>
     <a href="https://github.com/llm-d" target="_blank">GitHub</a>
   </div>
-  <p>Markell Rawls &middot; Developer Advocate &middot; Red Hat</p>
+  <p>Markell Rawls &middot; AI Evangelist &middot; Red Hat</p>
 </footer>
 
 <script>
-/* ================================================================
-   Choose Your Own Inference Stack — Decision Engine & Config Generator
-   ================================================================ */
+/* ====================================================================
+   1. CONFIGURATION DATA
+   ==================================================================== */
 
-// ── Questions ──────────────────────────────────────────────
 const QUESTIONS = [
   {
-    id: 'modelSize',
-    number: 1,
-    title: 'What size model are you serving?',
-    subtitle: 'This determines GPU memory requirements, tensor parallelism, and whether you need disaggregated serving.',
-    options: [
-      { value: '7b', label: '7B Parameters', desc: 'Llama 3.1 8B, Mistral 7B, Qwen2 7B', icon: '1' },
-      { value: '13b', label: '13B Parameters', desc: 'Llama 2 13B, CodeLlama 13B', icon: '2' },
-      { value: '34b', label: '34B Parameters', desc: 'CodeLlama 34B, Yi 34B', icon: '3' },
-      { value: '70b', label: '70B Parameters', desc: 'Llama 3.1 70B, Qwen2 72B', icon: '4' },
-      { value: '405b', label: '405B Parameters', desc: 'Llama 3.1 405B — requires multi-node', icon: '8' },
+    id:'modelSize', number:1,
+    title:"What's your model size?",
+    subtitle:'Model parameters determine GPU memory needs, tensor parallelism degree, and whether disaggregated serving is beneficial.',
+    options:[
+      {value:'7b',  label:'7B Parameters',  desc:'Llama 3.1 8B, Mistral 7B, Qwen2 7B',        icon:'7B'},
+      {value:'13b', label:'13B Parameters', desc:'Llama 2 13B, CodeLlama 13B',                  icon:'13'},
+      {value:'34b', label:'34B Parameters', desc:'CodeLlama 34B, Yi 34B, Qwen 32B',             icon:'34'},
+      {value:'70b', label:'70B Parameters', desc:'Llama 3.1 70B, Qwen2 72B, Mixtral 8x22B',     icon:'70'},
+      {value:'405b',label:'405B Parameters',desc:'Llama 3.1 405B -- multi-node, FP8 required',   icon:'405'},
     ]
   },
   {
-    id: 'trafficPattern',
-    number: 2,
-    title: 'What does your traffic look like?',
-    subtitle: 'Traffic patterns determine routing strategy, cache policy, and autoscaling configuration.',
-    options: [
-      { value: 'steady', label: 'Steady State', desc: 'Consistent throughput, predictable load', icon: '─' },
-      { value: 'bursty', label: 'Bursty', desc: 'Spikes of 10x+ normal traffic', icon: '⚡' },
-      { value: 'conversational', label: 'Multi-turn Conversational', desc: 'Chat sessions with shared prefixes', icon: '💬' },
-      { value: 'agentic', label: 'Agentic with Tool Calls', desc: 'Function calling, RAG, chained reasoning', icon: '🤖' },
+    id:'latencyTarget', number:2,
+    title:"What's your latency SLO?",
+    subtitle:'Latency requirements determine whether you need prefill/decode disaggregation and how to tune the routing layer.',
+    options:[
+      {value:'best_effort', label:'Best Effort',    desc:'Maximize throughput, latency is secondary',     icon:'BE'},
+      {value:'p50_500',     label:'< 500ms TTFT',   desc:'Standard interactive -- chatbots, search',      icon:'5H'},
+      {value:'p50_200',     label:'< 200ms TTFT',   desc:'Low-latency interactive -- copilot, assist',    icon:'2H'},
+      {value:'p50_100',     label:'< 100ms TTFT',   desc:'Real-time -- voice, gaming, streaming apps',    icon:'1H'},
     ]
   },
   {
-    id: 'gpuHardware',
-    number: 3,
-    title: 'What GPUs do you have?',
-    subtitle: 'GPU memory and interconnect speed affect parallelism strategy and maximum model size.',
-    options: [
-      { value: 'a100_40', label: 'A100 40GB', desc: 'NVIDIA A100 PCIe/SXM — 40GB HBM2e', icon: 'A' },
-      { value: 'a100_80', label: 'A100 80GB', desc: 'NVIDIA A100 SXM — 80GB HBM2e', icon: 'A' },
-      { value: 'h100', label: 'H100', desc: 'NVIDIA H100 SXM — 80GB HBM3', icon: 'H' },
-      { value: 'h200', label: 'H200', desc: 'NVIDIA H200 — 141GB HBM3e', icon: 'H' },
-      { value: 'mi300x', label: 'MI300X', desc: 'AMD Instinct MI300X — 192GB HBM3', icon: 'M' },
-      { value: 'mixed', label: 'Mixed Fleet', desc: 'Multiple GPU types across nodes', icon: '×' },
+    id:'multiTenancy', number:3,
+    title:'Multi-tenant?',
+    subtitle:'Tenancy model affects resource isolation, routing complexity, LoRA adapter scheduling, and quota enforcement.',
+    options:[
+      {value:'single_single', label:'Single model, single team',    desc:'One model, one consumer -- simplest setup',             icon:'1:1'},
+      {value:'single_multi',  label:'Single model, multi-team',     desc:'Shared model with priority tiers and rate limits',      icon:'1:N'},
+      {value:'multi_lora',    label:'Multi-LoRA',                   desc:'Fine-tuned LoRA adapters on a shared base model',       icon:'LoRA'},
+      {value:'multi_isolated',label:'Multi-model, isolated',        desc:'Separate namespaces, quotas, SLAs per tenant',          icon:'N:N'},
     ]
   },
   {
-    id: 'latencyTarget',
-    number: 4,
-    title: "What's your latency target?",
-    subtitle: 'Latency requirements determine whether you need prefill/decode disaggregation and how aggressively to optimize.',
-    options: [
-      { value: 'best_effort', label: 'Best Effort', desc: 'Maximize throughput, latency secondary', icon: '∞' },
-      { value: 'p50_500', label: '< 500ms TTFT', desc: 'Standard interactive — chatbot, search', icon: '⏱' },
-      { value: 'p50_200', label: '< 200ms TTFT', desc: 'Low-latency interactive — copilot, assist', icon: '⏰' },
-      { value: 'p50_100', label: '< 100ms TTFT', desc: 'Real-time — voice, gaming, streaming', icon: '⚡' },
+    id:'gpuBudget', number:4,
+    title:'GPU budget?',
+    subtitle:'GPU count determines replica spread, autoscaling headroom, and whether multi-node parallelism is needed.',
+    options:[
+      {value:'1_2',   label:'1-2 GPUs',   desc:'Development, prototyping, small production',     icon:'2'},
+      {value:'4_8',   label:'4-8 GPUs',   desc:'Single node production with TP or replicas',     icon:'8'},
+      {value:'16_32', label:'16-32 GPUs',  desc:'Multi-node with disaggregation possible',        icon:'32'},
+      {value:'64_plus',label:'64+ GPUs',   desc:'Hyperscale, multi-cluster, full disaggregation', icon:'64'},
     ]
   },
   {
-    id: 'multiTenancy',
-    number: 5,
-    title: 'How many teams and models?',
-    subtitle: 'Multi-tenancy affects resource isolation, LoRA adapter routing, and scheduling complexity.',
-    options: [
-      { value: 'single_single', label: 'Single Model, Single Team', desc: 'One model, one consumer', icon: '1' },
-      { value: 'single_multi', label: 'Single Model, Multiple Teams', desc: 'Shared model with priority tiers', icon: '👥' },
-      { value: 'multi_lora', label: 'Multiple Models or LoRA Adapters', desc: 'Fine-tuned variants on shared base', icon: '🧩' },
-      { value: 'multi_isolated', label: 'Multi-model with Isolation', desc: 'Separate namespaces, quotas, SLAs', icon: '🔒' },
+    id:'platform', number:5,
+    title:'Cloud or on-prem?',
+    subtitle:'Deployment platform affects gateway choice, storage, networking, and GPU provisioning strategy.',
+    options:[
+      {value:'cloud_managed', label:'Cloud managed K8s',  desc:'EKS, GKE, AKS with managed node pools',           icon:'CLD'},
+      {value:'self_managed',  label:'Self-managed K8s',   desc:'kubeadm, k3s, RKE on your own infrastructure',    icon:'K8S'},
+      {value:'openshift',     label:'OpenShift',          desc:'Red Hat OpenShift with operator lifecycle',         icon:'OCP'},
+      {value:'bare_metal',    label:'Bare metal',         desc:'Direct hardware, no orchestration layer above',     icon:'BM'},
     ]
   }
 ];
 
-// ── State ──────────────────────────────────────────────────
+const MODEL_DB = {
+  '7b':  {name:'meta-llama/Llama-3.1-8B-Instruct',         maxLen:8192,  mem:16,  label:'Llama 3.1 8B'},
+  '13b': {name:'meta-llama/Llama-2-13b-chat-hf',            maxLen:4096,  mem:26,  label:'Llama 2 13B'},
+  '34b': {name:'codellama/CodeLlama-34b-Instruct-hf',       maxLen:16384, mem:68,  label:'CodeLlama 34B'},
+  '70b': {name:'meta-llama/Llama-3.1-70B-Instruct',         maxLen:8192,  mem:140, label:'Llama 3.1 70B'},
+  '405b':{name:'meta-llama/Llama-3.1-405B-Instruct-FP8',    maxLen:8192,  mem:810, label:'Llama 3.1 405B FP8'},
+};
+
+const GPU_DB = {
+  a100_80:{label:'NVIDIA A100 80GB', mem:80, costHr:2.21},
+  h100:   {label:'NVIDIA H100 80GB', mem:80, costHr:3.50},
+  h200:   {label:'NVIDIA H200 141GB',mem:141,costHr:4.50},
+};
+
+// Stack presets for gallery and comparison
+const STACK_PRESETS = {
+  startup:{
+    id:'startup', name:'Startup MVP', badge:'starter',
+    desc:'Minimal viable inference stack for prototyping and early production. One or two replicas of a 7B-13B model on a single node. Best for teams validating product-market fit before scaling.',
+    selections:{modelSize:'7b',latencyTarget:'best_effort',multiTenancy:'single_single',gpuBudget:'1_2',platform:'cloud_managed'},
+    components:['vLLM','EPP','Gateway'],
+    costRange:'$300-800/mo', gpuSpec:'1-2x A100 80GB', perf:{ttft:'200-400ms',tps:'40-60 tok/s',throughput:'5-10 req/s'},
+    scores:{cost:9,latency:5,throughput:4,complexity:9,scalability:3},
+  },
+  enterprise:{
+    id:'enterprise', name:'Enterprise Production', badge:'enterprise',
+    desc:'High-availability, multi-tenant deployment with monitoring and autoscaling. Supports priority scheduling across teams, prefix-cache-aware routing, and SLA-driven alerting on OpenShift.',
+    selections:{modelSize:'70b',latencyTarget:'p50_500',multiTenancy:'single_multi',gpuBudget:'16_32',platform:'openshift'},
+    components:['vLLM','EPP','Gateway','KServe','Prometheus','Grafana','HPA'],
+    costRange:'$8,000-18,000/mo', gpuSpec:'8-16x H100', perf:{ttft:'80-200ms',tps:'30-50 tok/s',throughput:'20-50 req/s'},
+    scores:{cost:4,latency:7,throughput:7,complexity:5,scalability:7},
+  },
+  hyperscale:{
+    id:'hyperscale', name:'Hyperscale', badge:'hyperscale',
+    desc:'Multi-cluster, fully disaggregated prefill/decode architecture with complete observability, LoRA routing, and aggressive autoscaling. Built for 405B-class models serving millions of daily requests.',
+    selections:{modelSize:'405b',latencyTarget:'p50_200',multiTenancy:'multi_lora',gpuBudget:'64_plus',platform:'self_managed'},
+    components:['vLLM','EPP','Gateway','KServe','Prometheus','Grafana','HPA','P/D Disaggregation'],
+    costRange:'$40,000-100,000+/mo', gpuSpec:'64-128x H200', perf:{ttft:'100-300ms',tps:'20-35 tok/s',throughput:'100-500 req/s'},
+    scores:{cost:1,latency:8,throughput:10,complexity:2,scalability:10},
+  },
+};
+
+// Builder components
+const BUILDER_COMPONENTS = [
+  {id:'vllm',      label:'vLLM',        color:'#3b82f6', bg:'rgba(59,130,246,0.1)',  connects:['epp','prometheus','hpa']},
+  {id:'epp',       label:'EPP',         color:'#8b5cf6', bg:'rgba(139,92,246,0.1)',  connects:['vllm','gateway','kserve']},
+  {id:'gateway',   label:'Gateway',     color:'#6366f1', bg:'rgba(99,102,241,0.1)',  connects:['epp']},
+  {id:'kserve',    label:'KServe',      color:'#ec4899', bg:'rgba(236,72,153,0.1)',  connects:['epp','vllm']},
+  {id:'prometheus',label:'Prometheus',  color:'#f59e0b', bg:'rgba(245,158,11,0.1)',  connects:['vllm','grafana','hpa']},
+  {id:'grafana',   label:'Grafana',     color:'#f97316', bg:'rgba(249,115,22,0.1)',  connects:['prometheus']},
+  {id:'hpa',       label:'HPA',         color:'#06b6d4', bg:'rgba(6,182,212,0.1)',   connects:['vllm','prometheus']},
+];
+
+
+/* ====================================================================
+   2. STATE MANAGEMENT
+   ==================================================================== */
+
 let currentStep = 0;
 let selections = {};
+let configData = {};
+let showingResults = false;
 
-// ── Init ───────────────────────────────────────────────────
+// Compare state
+let compareSelections = [];
+
+// Builder state
+let canvasNodes = [];
+let canvasNextId = 1;
+let dragState = null;
+
+
+/* ====================================================================
+   3. INITIALIZATION
+   ==================================================================== */
+
 document.addEventListener('DOMContentLoaded', () => {
+  initTabs();
+  initHeader();
   loadFromURL();
   buildProgress();
   renderQuestion();
+  initCompare();
+  initBuilder();
+  initGallery();
 });
+
+
+/* ====================================================================
+   4. TAB NAVIGATION
+   ==================================================================== */
+
+function initTabs() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + tab).classList.add('active');
+    });
+  });
+}
+
+function switchToTab(tabId) {
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tabId);
+  });
+  document.querySelectorAll('.tab-content').forEach(c => {
+    c.classList.toggle('active', c.id === 'tab-' + tabId);
+  });
+}
+
+function initHeader() {
+  window.addEventListener('scroll', () => {
+    document.getElementById('siteHeader').classList.toggle('scrolled', window.scrollY > 10);
+  });
+}
+
+
+/* ====================================================================
+   5. WIZARD LOGIC
+   ==================================================================== */
 
 function loadFromURL() {
   const params = new URLSearchParams(window.location.search);
@@ -445,14 +826,13 @@ function loadFromURL() {
   }
 }
 
-// ── Progress Bar ───────────────────────────────────────────
 function buildProgress() {
   const container = document.getElementById('wizardProgress');
   container.innerHTML = '';
   QUESTIONS.forEach((q, i) => {
     const step = document.createElement('div');
     step.className = 'wizard-progress-step';
-    step.innerHTML = `<div class="progress-dot" onclick="goToStep(${i})" title="Step ${i+1}: ${q.title}">${i+1}</div>`;
+    step.innerHTML = '<div class="progress-dot" onclick="goToStep(' + i + ')" title="Step ' + (i+1) + ': ' + q.title + '">' + (i+1) + '</div>';
     if (i < QUESTIONS.length - 1) step.innerHTML += '<div class="progress-line"></div>';
     container.appendChild(step);
   });
@@ -461,7 +841,7 @@ function buildProgress() {
 
 function updateProgress() {
   document.querySelectorAll('.wizard-progress-step').forEach((el, i) => {
-    el.classList.remove('active', 'completed');
+    el.classList.remove('active','completed');
     if (i < currentStep) el.classList.add('completed');
     else if (i === currentStep) el.classList.add('active');
   });
@@ -470,53 +850,49 @@ function updateProgress() {
 function goToStep(step) {
   if (step <= currentStep || selections[QUESTIONS[step]?.id]) {
     currentStep = step;
+    showingResults = false;
     updateProgress();
     renderQuestion();
-    document.getElementById('results').classList.remove('visible');
-    document.getElementById('wizard').style.display = '';
+    document.getElementById('resultsArea').style.display = 'none';
+    document.getElementById('questionArea').style.display = '';
+    document.querySelector('.wizard-container').style.display = '';
   }
 }
 
-// ── Render Question ────────────────────────────────────────
 function renderQuestion() {
   if (currentStep >= QUESTIONS.length) return;
   const q = QUESTIONS[currentStep];
   const area = document.getElementById('questionArea');
   const selected = selections[q.id] || '';
 
-  let optionsHTML = q.options.map(o => `
-    <button class="option-btn${o.value === selected ? ' selected' : ''}" onclick="selectOption('${q.id}','${o.value}')">
-      <div class="option-icon">${o.icon}</div>
-      <div>
-        <div class="option-label">${o.label}</div>
-        <div class="option-desc">${o.desc}</div>
-      </div>
-    </button>
-  `).join('');
+  let optionsHTML = q.options.map(o =>
+    '<button class="option-btn' + (o.value === selected ? ' selected' : '') + '" onclick="selectOption(\'' + q.id + '\',\'' + o.value + '\')">' +
+      '<div class="option-icon">' + o.icon + '</div>' +
+      '<div><div class="option-label">' + o.label + '</div><div class="option-desc">' + o.desc + '</div></div>' +
+    '</button>'
+  ).join('');
 
-  area.innerHTML = `
-    <div class="question-card" key="${currentStep}">
-      <div class="question-number">Question ${q.number} of ${QUESTIONS.length}</div>
-      <h2 class="question-title">${q.title}</h2>
-      <p class="question-subtitle">${q.subtitle}</p>
-      <div class="options-grid">${optionsHTML}</div>
-      <div class="wizard-nav">
-        <button class="btn btn-secondary" onclick="prevStep()" ${currentStep === 0 ? 'style="visibility:hidden"' : ''}>&larr; Back</button>
-        ${currentStep === QUESTIONS.length - 1
-          ? `<button class="btn btn-success" onclick="generateResults()" ${!selected ? 'disabled' : ''}>Generate Architecture &rarr;</button>`
-          : `<button class="btn btn-primary" onclick="nextStep()" ${!selected ? 'disabled' : ''}>Next &rarr;</button>`
-        }
-      </div>
-    </div>
-  `;
+  area.innerHTML =
+    '<div class="question-card">' +
+      '<div class="question-number">Question ' + q.number + ' of ' + QUESTIONS.length + '</div>' +
+      '<h2 class="question-title">' + q.title + '</h2>' +
+      '<p class="question-subtitle">' + q.subtitle + '</p>' +
+      '<div class="options-grid">' + optionsHTML + '</div>' +
+      '<div class="wizard-nav">' +
+        '<button class="btn btn-secondary" onclick="prevStep()" ' + (currentStep === 0 ? 'style="visibility:hidden"' : '') + '>&larr; Back</button>' +
+        (currentStep === QUESTIONS.length - 1
+          ? '<button class="btn btn-success btn-lg" onclick="generateResults()" ' + (!selected ? 'disabled' : '') + '>Generate Architecture &rarr;</button>'
+          : '<button class="btn btn-primary" onclick="nextStep()" ' + (!selected ? 'disabled' : '') + '>Next &rarr;</button>'
+        ) +
+      '</div>' +
+    '</div>';
 }
 
 function selectOption(qId, value) {
   selections[qId] = value;
   renderQuestion();
-  // Auto-advance after brief delay for a premium feel
   if (currentStep < QUESTIONS.length - 1) {
-    setTimeout(() => nextStep(), 350);
+    setTimeout(() => nextStep(), 300);
   }
 }
 
@@ -541,114 +917,106 @@ function generateResults() {
 function startOver() {
   selections = {};
   currentStep = 0;
+  showingResults = false;
   history.replaceState(null, '', window.location.pathname);
-  document.getElementById('results').classList.remove('visible');
-  document.getElementById('wizard').style.display = '';
+  document.getElementById('resultsArea').style.display = 'none';
+  document.getElementById('questionArea').style.display = '';
+  document.querySelector('.wizard-container').style.display = '';
   buildProgress();
   renderQuestion();
-  document.getElementById('wizard').scrollIntoView({ behavior: 'smooth' });
+  document.getElementById('tab-wizard').scrollIntoView({behavior:'smooth'});
 }
 
-// ── Config Engine ──────────────────────────────────────────
+function loadPresetIntoWizard(presetId) {
+  const preset = STACK_PRESETS[presetId];
+  if (!preset) return;
+  selections = {...preset.selections};
+  currentStep = QUESTIONS.length;
+  switchToTab('wizard');
+  buildProgress();
+  updateProgress();
+  setTimeout(() => showResults(), 150);
+}
+
+
+/* ====================================================================
+   6. CONFIG ENGINE
+   ==================================================================== */
+
 function getConfig() {
   const s = selections;
   const cfg = {};
+  const model = MODEL_DB[s.modelSize];
 
-  // ── Model configuration ──
-  const modelMap = {
-    '7b': { name: 'meta-llama/Llama-3.1-8B-Instruct', maxLen: 8192, tp: {}, mem: 16 },
-    '13b': { name: 'meta-llama/Llama-2-13b-chat-hf', maxLen: 4096, tp: {}, mem: 26 },
-    '34b': { name: 'codellama/CodeLlama-34b-Instruct-hf', maxLen: 16384, tp: {}, mem: 68 },
-    '70b': { name: 'meta-llama/Llama-3.1-70B-Instruct', maxLen: 8192, tp: {}, mem: 140 },
-    '405b': { name: 'meta-llama/Llama-3.1-405B-Instruct-FP8', maxLen: 8192, tp: {}, mem: 810 },
-  };
+  // Determine GPU type from budget and model size
+  let gpuType;
+  if (s.modelSize === '405b') gpuType = 'h200';
+  else if (s.gpuBudget === '64_plus' || s.gpuBudget === '16_32') gpuType = 'h100';
+  else gpuType = 'a100_80';
 
-  // ── TP per GPU ──
-  const gpuMem = { a100_40: 40, a100_80: 80, h100: 80, h200: 141, mi300x: 192, mixed: 80 };
-  const gpuLabel = { a100_40:'NVIDIA A100 40GB', a100_80:'NVIDIA A100 80GB', h100:'NVIDIA H100', h200:'NVIDIA H200', mi300x:'AMD MI300X', mixed:'Mixed Fleet' };
-  const model = modelMap[s.modelSize];
-  const mem = gpuMem[s.gpuHardware];
+  const gpu = GPU_DB[gpuType];
 
-  // Calculate tensor parallelism
-  let tp = Math.ceil(model.mem / (mem * 0.85)); // 85% usable
+  // Tensor parallelism
+  let tp = Math.ceil(model.mem / (gpu.mem * 0.85));
   tp = [1,2,4,8].find(v => v >= tp) || 8;
 
-  // GPU count
-  let gpuCount;
-  if (s.modelSize === '405b') {
-    if (s.gpuHardware === 'h200' || s.gpuHardware === 'mi300x') {
-      gpuCount = 8; tp = 8;
-    } else if (s.gpuHardware === 'a100_40') {
-      gpuCount = 8; tp = 8; // FP8 quantized, still tight
-    } else {
-      gpuCount = 8; tp = 8; // H100 / A100 80GB with FP8
-    }
-  } else {
-    gpuCount = tp;
-  }
+  // GPU count per replica
+  let gpuCount = tp;
+  if (s.modelSize === '405b') { gpuCount = 8; tp = 8; }
 
-  // Replicas
-  let replicas;
-  if (s.trafficPattern === 'steady') replicas = 2;
-  else if (s.trafficPattern === 'bursty') replicas = 3;
-  else replicas = 2;
+  // Base replicas from budget
+  let baseGpus;
+  if (s.gpuBudget === '1_2') baseGpus = 2;
+  else if (s.gpuBudget === '4_8') baseGpus = 8;
+  else if (s.gpuBudget === '16_32') baseGpus = 24;
+  else baseGpus = 80;
+  let replicas = Math.max(1, Math.floor(baseGpus / gpuCount));
 
+  // Adjust for latency
   if (s.latencyTarget === 'p50_100') replicas = Math.max(replicas, 3);
+  if (s.latencyTarget === 'p50_200') replicas = Math.max(replicas, 2);
 
-  // ── Disaggregation ──
-  const disaggregate = (s.latencyTarget === 'p50_100' || s.latencyTarget === 'p50_200') && s.modelSize !== '7b';
+  // Disaggregation
+  const disaggregate = (s.latencyTarget === 'p50_100' || s.latencyTarget === 'p50_200') && s.modelSize !== '7b' && replicas >= 2;
   let prefillReplicas = 0, decodeReplicas = 0;
   if (disaggregate) {
     prefillReplicas = Math.max(1, Math.floor(replicas * 0.4));
     decodeReplicas = Math.max(1, replicas - prefillReplicas);
-    if (s.trafficPattern === 'bursty') prefillReplicas = Math.max(2, prefillReplicas);
   }
 
-  // ── Routing strategy ──
+  // Routing
   let routingStrategy, cachePolicy;
-  if (s.trafficPattern === 'conversational' || s.trafficPattern === 'agentic') {
-    routingStrategy = 'prefix-cache-aware';
+  if (s.multiTenancy === 'multi_lora') {
+    routingStrategy = 'lora-affinity-prefix-cache';
     cachePolicy = 'always';
   } else if (s.latencyTarget === 'p50_100' || s.latencyTarget === 'p50_200') {
     routingStrategy = 'load-aware-prefix-cache';
+    cachePolicy = 'always';
+  } else if (s.multiTenancy === 'single_multi') {
+    routingStrategy = 'priority-load-aware';
     cachePolicy = 'on-demand';
   } else {
     routingStrategy = 'load-aware';
-    cachePolicy = 'on-demand';
+    cachePolicy = s.latencyTarget === 'best_effort' ? 'disabled' : 'on-demand';
   }
 
-  // ── Prefix caching ──
-  const enablePrefixCaching = s.trafficPattern !== 'steady' || s.latencyTarget !== 'best_effort';
-
-  // ── LoRA ──
+  const enablePrefixCaching = s.latencyTarget !== 'best_effort';
   const enableLoRA = s.multiTenancy === 'multi_lora';
-  const maxLoraRank = enableLoRA ? 64 : 0;
 
-  // ── Autoscaling ──
-  let hpaMin, hpaMax, hpaMetric, hpaThreshold;
-  if (s.trafficPattern === 'bursty') {
-    hpaMin = replicas;
-    hpaMax = replicas * 4;
-    hpaMetric = 'vllm:num_requests_waiting';
-    hpaThreshold = 10;
-  } else if (s.trafficPattern === 'steady') {
-    hpaMin = replicas;
-    hpaMax = replicas * 2;
-    hpaMetric = 'vllm:gpu_cache_usage_perc';
-    hpaThreshold = 80;
-  } else {
-    hpaMin = replicas;
+  // Autoscaling
+  let hpaMin = replicas, hpaMax, hpaMetric, hpaThreshold;
+  if (s.gpuBudget === '64_plus') {
     hpaMax = replicas * 3;
     hpaMetric = 'vllm:num_requests_waiting';
     hpaThreshold = 8;
-  }
-
-  // ── Multi-tenancy ──
-  let isolationNote = '';
-  if (s.multiTenancy === 'multi_isolated') {
-    isolationNote = 'Deploy separate InferencePool per tenant namespace with ResourceQuota';
-  } else if (s.multiTenancy === 'single_multi') {
-    isolationNote = 'Use EPP priority scheduling with per-team rate limits';
+  } else if (s.gpuBudget === '16_32') {
+    hpaMax = replicas * 2;
+    hpaMetric = 'vllm:num_requests_waiting';
+    hpaThreshold = 10;
+  } else {
+    hpaMax = Math.max(replicas + 1, Math.ceil(replicas * 1.5));
+    hpaMetric = 'vllm:gpu_cache_usage_perc';
+    hpaThreshold = 80;
   }
 
   // Total GPUs
@@ -656,11 +1024,50 @@ function getConfig() {
     ? (prefillReplicas + decodeReplicas) * gpuCount
     : replicas * gpuCount;
 
+  // Cost estimation (hourly GPU cost * 730 hours/month)
+  const monthlyCostLow = Math.round(totalGPUs * gpu.costHr * 730 * 0.7); // spot/reserved
+  const monthlyCostHigh = Math.round(totalGPUs * gpu.costHr * 730);
+
+  // Performance projections
+  let ttftRange, tpsRange, throughputRange;
+  if (s.modelSize === '7b') {
+    ttftRange = disaggregate ? '30-80ms' : '50-150ms';
+    tpsRange = '50-80 tok/s';
+    throughputRange = (replicas * 8) + '-' + (replicas * 15) + ' req/s';
+  } else if (s.modelSize === '13b') {
+    ttftRange = disaggregate ? '50-120ms' : '80-250ms';
+    tpsRange = '40-65 tok/s';
+    throughputRange = (replicas * 5) + '-' + (replicas * 12) + ' req/s';
+  } else if (s.modelSize === '34b') {
+    ttftRange = disaggregate ? '80-180ms' : '120-400ms';
+    tpsRange = '30-50 tok/s';
+    throughputRange = (replicas * 3) + '-' + (replicas * 8) + ' req/s';
+  } else if (s.modelSize === '70b') {
+    ttftRange = disaggregate ? '80-200ms' : '150-500ms';
+    tpsRange = '25-45 tok/s';
+    throughputRange = (replicas * 2) + '-' + (replicas * 6) + ' req/s';
+  } else {
+    ttftRange = disaggregate ? '150-350ms' : '300-800ms';
+    tpsRange = '15-30 tok/s';
+    throughputRange = Math.max(1, Math.floor(replicas * 0.8)) + '-' + (replicas * 3) + ' req/s';
+  }
+
+  // Platform-specific notes
+  let platformNote = '';
+  if (s.platform === 'openshift') platformNote = 'Use OpenShift Operators for lifecycle management. NVIDIA GPU Operator handles drivers.';
+  else if (s.platform === 'cloud_managed') platformNote = 'Use managed node pools with GPU node selectors. Cloud provider manages driver installation.';
+  else if (s.platform === 'bare_metal') platformNote = 'Install NVIDIA drivers and container toolkit manually. Use MetalLB or equivalent for load balancing.';
+  else platformNote = 'Ensure GPU device plugin and container runtime are properly configured.';
+
+  let gatewayClass = 'istio';
+  if (s.platform === 'openshift') gatewayClass = 'openshift-default';
+  else if (s.platform === 'cloud_managed') gatewayClass = 'gke-l7-global-external-managed';
+
   cfg.model = model;
+  cfg.gpu = gpu;
+  cfg.gpuType = gpuType;
   cfg.tp = tp;
   cfg.gpuCount = gpuCount;
-  cfg.gpuLabel = gpuLabel[s.gpuHardware];
-  cfg.gpuMem = mem;
   cfg.replicas = replicas;
   cfg.disaggregate = disaggregate;
   cfg.prefillReplicas = prefillReplicas;
@@ -669,529 +1076,585 @@ function getConfig() {
   cfg.cachePolicy = cachePolicy;
   cfg.enablePrefixCaching = enablePrefixCaching;
   cfg.enableLoRA = enableLoRA;
-  cfg.maxLoraRank = maxLoraRank;
+  cfg.maxLoraRank = enableLoRA ? 64 : 0;
   cfg.hpaMin = hpaMin;
   cfg.hpaMax = hpaMax;
   cfg.hpaMetric = hpaMetric;
   cfg.hpaThreshold = hpaThreshold;
-  cfg.isolationNote = isolationNote;
   cfg.totalGPUs = totalGPUs;
+  cfg.monthlyCostLow = monthlyCostLow;
+  cfg.monthlyCostHigh = monthlyCostHigh;
+  cfg.ttftRange = ttftRange;
+  cfg.tpsRange = tpsRange;
+  cfg.throughputRange = throughputRange;
+  cfg.platformNote = platformNote;
+  cfg.gatewayClass = gatewayClass;
 
   return cfg;
 }
 
-// ── Show Results ───────────────────────────────────────────
+
+/* ====================================================================
+   7. SHOW RESULTS
+   ==================================================================== */
+
 function showResults() {
   const cfg = getConfig();
   const s = selections;
+  showingResults = true;
 
-  document.getElementById('wizard').style.display = 'none';
-  const resultsEl = document.getElementById('results');
-  resultsEl.classList.add('visible');
-  resultsEl.scrollIntoView({ behavior: 'smooth' });
+  document.getElementById('questionArea').style.display = 'none';
+  document.querySelector('.wizard-container').style.display = 'none';
+  const area = document.getElementById('resultsArea');
+  area.style.display = 'block';
 
-  // Subtitle
-  document.getElementById('resultsSubtitle').textContent =
-    `Optimized for ${cfg.model.name.split('/').pop()} on ${cfg.gpuLabel} with ${cfg.routingStrategy} routing`;
+  const labelMap = {};
+  QUESTIONS.forEach(q => q.options.forEach(o => { labelMap[o.value] = o.label; }));
+
+  const costStr = '$' + cfg.monthlyCostLow.toLocaleString() + ' - $' + cfg.monthlyCostHigh.toLocaleString() + '/mo';
+
+  let html = '<div class="results-panel">';
+
+  // Header
+  html += '<div class="results-header">' +
+    '<h2>Your Recommended Architecture</h2>' +
+    '<p>Optimized for ' + cfg.model.label + ' on ' + cfg.gpu.label + ' with ' + cfg.routingStrategy + ' routing</p>' +
+  '</div>';
 
   // Summary chips
-  const labelMap = {};
-  QUESTIONS.forEach(q => { q.options.forEach(o => { labelMap[o.value] = o.label; }); });
-  document.getElementById('resultsSummary').innerHTML = QUESTIONS.map(q =>
-    `<div class="summary-chip"><div class="chip-label">${q.title.replace(/\?/,'').substring(0,25)}</div><div class="chip-value">${labelMap[s[q.id]]}</div></div>`
-  ).join('');
+  html += '<div class="results-summary">';
+  QUESTIONS.forEach(q => {
+    html += '<div class="summary-chip"><div class="chip-label">' + q.title.replace(/\?/,'').substring(0,22) + '</div><div class="chip-value">' + labelMap[s[q.id]] + '</div></div>';
+  });
+  html += '</div>';
 
-  // Metrics
-  document.getElementById('metricsGrid').innerHTML = `
-    <div class="metric-card"><div class="mc-label">Total GPUs</div><div class="mc-value">${cfg.totalGPUs}</div><div class="mc-detail">${cfg.gpuLabel}</div></div>
-    <div class="metric-card"><div class="mc-label">Tensor Parallelism</div><div class="mc-value">TP=${cfg.tp}</div><div class="mc-detail">${cfg.gpuCount} GPU${cfg.gpuCount>1?'s':''} per replica</div></div>
-    <div class="metric-card"><div class="mc-label">Routing Strategy</div><div class="mc-value" style="font-size:1rem">${cfg.routingStrategy}</div><div class="mc-detail">Cache: ${cfg.cachePolicy}</div></div>
-    <div class="metric-card"><div class="mc-label">Replicas</div><div class="mc-value">${cfg.disaggregate ? cfg.prefillReplicas+'P + '+cfg.decodeReplicas+'D' : cfg.replicas}</div><div class="mc-detail">${cfg.disaggregate ? 'Disaggregated prefill/decode' : 'Unified serving'}</div></div>
-    <div class="metric-card"><div class="mc-label">Autoscaling</div><div class="mc-value">${cfg.hpaMin}–${cfg.hpaMax}</div><div class="mc-detail">Scale on ${cfg.hpaMetric.split(':').pop()}</div></div>
-    <div class="metric-card"><div class="mc-label">Prefix Caching</div><div class="mc-value">${cfg.enablePrefixCaching ? 'Enabled' : 'Disabled'}</div><div class="mc-detail">${cfg.enableLoRA ? 'LoRA adapters enabled' : 'No LoRA adapters'}</div></div>
-  `;
+  // Metrics grid
+  html += '<div class="metrics-grid">' +
+    '<div class="metric-card highlight"><div class="mc-label">Estimated Cost</div><div class="mc-value" style="font-size:1.15rem">' + costStr + '</div><div class="mc-detail">' + cfg.gpu.label + ' on-demand pricing</div></div>' +
+    '<div class="metric-card"><div class="mc-label">Total GPUs</div><div class="mc-value">' + cfg.totalGPUs + '</div><div class="mc-detail">' + cfg.gpu.label + '</div></div>' +
+    '<div class="metric-card"><div class="mc-label">Tensor Parallelism</div><div class="mc-value">TP=' + cfg.tp + '</div><div class="mc-detail">' + cfg.gpuCount + ' GPU' + (cfg.gpuCount>1?'s':'') + ' per replica</div></div>' +
+    '<div class="metric-card"><div class="mc-label">Expected TTFT</div><div class="mc-value" style="font-size:1.1rem">' + cfg.ttftRange + '</div><div class="mc-detail">Time to first token (p50)</div></div>' +
+    '<div class="metric-card"><div class="mc-label">Token Speed</div><div class="mc-value" style="font-size:1.1rem">' + cfg.tpsRange + '</div><div class="mc-detail">Tokens per second per user</div></div>' +
+    '<div class="metric-card"><div class="mc-label">Throughput</div><div class="mc-value" style="font-size:1.1rem">' + cfg.throughputRange + '</div><div class="mc-detail">Concurrent request capacity</div></div>' +
+    '<div class="metric-card"><div class="mc-label">Replicas</div><div class="mc-value">' + (cfg.disaggregate ? cfg.prefillReplicas + 'P + ' + cfg.decodeReplicas + 'D' : cfg.replicas) + '</div><div class="mc-detail">' + (cfg.disaggregate ? 'Disaggregated P/D' : 'Unified serving') + '</div></div>' +
+    '<div class="metric-card"><div class="mc-label">Autoscaling</div><div class="mc-value">' + cfg.hpaMin + ' - ' + cfg.hpaMax + '</div><div class="mc-detail">Scale on ' + cfg.hpaMetric.split(':').pop() + '</div></div>' +
+  '</div>';
 
-  // Architecture Diagram
-  drawArchitecture(cfg);
+  // Architecture diagram
+  html += '<div class="arch-panel">' +
+    '<h3><span class="dot" style="background:var(--primary)"></span> Architecture Diagram</h3>' +
+    '<div id="archDiagram"></div>' +
+    '<div class="arch-legend">' +
+      '<div class="legend-item"><span class="legend-color" style="background:#6366f1"></span> Gateway</div>' +
+      '<div class="legend-item"><span class="legend-color" style="background:#8b5cf6"></span> EPP (Routing)</div>' +
+      '<div class="legend-item"><span class="legend-color" style="background:#3b82f6"></span> Prefill Workers</div>' +
+      '<div class="legend-item"><span class="legend-color" style="background:#10b981"></span> Decode Workers</div>' +
+      '<div class="legend-item"><span class="legend-color" style="background:#f59e0b"></span> Monitoring</div>' +
+      '<div class="legend-item"><span class="legend-color" style="background:#06b6d4"></span> HPA</div>' +
+    '</div>' +
+  '</div>';
 
   // Insights
-  buildInsights(cfg, s);
+  html += '<div class="arch-panel" style="border-left:3px solid var(--primary)">' +
+    '<h3><span class="dot" style="background:var(--orange)"></span> Key Recommendations</h3>' +
+    '<div id="insightsList" style="display:grid;gap:10px"></div>' +
+  '</div>';
 
-  // Config tabs
+  // Config
+  html += '<div class="config-tabs" id="configTabs"></div>' +
+    '<div class="config-content" id="configContent"><button class="copy-btn" id="copyBtn" onclick="copyCurrentConfig()">Copy</button></div>';
+
+  // Actions
+  html += '<div class="results-actions">' +
+    '<button class="btn btn-primary" onclick="shareConfig()">Share This Config</button>' +
+    '<button class="btn btn-outline" onclick="downloadBundle()">Download Config Bundle</button>' +
+    '<button class="btn btn-secondary" onclick="startOver()">Start Over</button>' +
+  '</div>';
+
+  html += '</div>';
+  area.innerHTML = html;
+
+  // Render dynamic parts
+  drawArchitecture(cfg);
+  buildInsights(cfg, s);
   buildConfigTabs(cfg);
+
+  area.scrollIntoView({behavior:'smooth'});
 }
 
-// ── Insights ───────────────────────────────────────────────
+
+/* ====================================================================
+   8. INSIGHTS
+   ==================================================================== */
+
 function buildInsights(cfg, s) {
   const insights = [];
-  const insightStyle = 'padding:12px 16px;background:var(--surface-alt);border-radius:8px;font-size:0.9rem;line-height:1.6';
 
   if (cfg.disaggregate) {
-    insights.push('Prefill/decode disaggregation is recommended for your latency target. This separates compute-heavy prefill from memory-bandwidth-bound decode, optimizing each phase independently.');
+    insights.push('Prefill/decode disaggregation is recommended for your latency target. This separates compute-heavy prefill from memory-bandwidth-bound decode, allowing each phase to be independently optimized and scaled.');
   }
 
-  if (cfg.enablePrefixCaching && (s.trafficPattern === 'conversational' || s.trafficPattern === 'agentic')) {
-    insights.push('Prefix-cache-aware routing is critical for your workload. Multi-turn and agentic traffic shares 60-90% of prompt tokens across requests. The EPP will route to pods with warm KV cache, reducing TTFT by up to 10x.');
+  if (cfg.enablePrefixCaching) {
+    insights.push('Prefix caching is enabled. The EPP routes requests to pods with warm KV cache, reducing TTFT by up to 10x for repeated prompt prefixes. This is especially valuable for multi-turn conversations and system prompts.');
   }
 
   if (cfg.tp > 1) {
-    insights.push(`Tensor parallelism of ${cfg.tp} is required to fit the model in GPU memory. Ensure GPUs within each node are connected via NVLink/NVSwitch for minimal cross-GPU communication overhead.`);
-  }
-
-  if (s.gpuHardware === 'mi300x') {
-    insights.push('AMD MI300X provides 192GB HBM3, which can reduce or eliminate tensor parallelism needs. Use vLLM with ROCm support and verify operator compatibility before deployment.');
-  }
-
-  if (s.gpuHardware === 'mixed') {
-    insights.push('Mixed GPU fleets require careful node selector configuration. Use Kubernetes nodeAffinity rules to ensure each replica lands on compatible hardware. The EPP routes based on cache state and load, not GPU type.');
+    insights.push('Tensor parallelism of ' + cfg.tp + ' is required to fit the model in GPU memory. Ensure GPUs within each node are connected via NVLink/NVSwitch for minimal inter-GPU communication overhead.');
   }
 
   if (cfg.enableLoRA) {
-    insights.push('LoRA adapter serving shares base model weights (95%+ of GPU memory) across adapters. The EPP supports LoRA-aware routing, directing requests to replicas with the target adapter already loaded.');
+    insights.push('LoRA adapter serving shares base model weights across all adapters, using 95%+ of GPU memory efficiently. The EPP supports LoRA-affinity routing, directing requests to replicas with the target adapter already loaded in memory.');
   }
 
   if (s.multiTenancy === 'multi_isolated') {
-    insights.push('For full tenant isolation, deploy separate InferencePool resources per namespace. Use OpenShift ResourceQuotas and NetworkPolicies to enforce resource boundaries between tenants.');
+    insights.push('For full tenant isolation, deploy separate InferencePool resources per namespace. Use ResourceQuotas and NetworkPolicies to enforce resource boundaries. Each tenant gets independent autoscaling and monitoring.');
   }
 
-  if (s.trafficPattern === 'bursty') {
-    insights.push('Bursty traffic requires aggressive autoscaling. The HPA is configured to scale up quickly (60s stabilization) and scale down slowly (300s) to avoid thrashing. Consider pre-warming replicas during known peak windows.');
+  if (s.multiTenancy === 'single_multi') {
+    insights.push('Multi-team access uses EPP priority scheduling. Critical requests from production services get priority over batch workloads. Configure per-team rate limits via InferenceModel criticality levels.');
   }
 
   if (s.modelSize === '405b') {
-    insights.push('405B models require 8-way tensor parallelism at minimum with FP8 quantization. This is a multi-node deployment — ensure high-bandwidth inter-node networking (InfiniBand or RoCE) for acceptable latency.');
+    insights.push('405B models require 8-way tensor parallelism minimum with FP8 quantization. This is a multi-node deployment -- ensure high-bandwidth inter-node networking (InfiniBand or RoCE) for acceptable latency.');
   }
 
-  document.getElementById('insightsList').innerHTML = insights.map(text =>
-    `<li style="${insightStyle}">${text}</li>`
-  ).join('');
+  if (s.platform === 'openshift') {
+    insights.push('On OpenShift, use the NVIDIA GPU Operator for driver lifecycle management. The Node Feature Discovery (NFD) operator auto-labels GPU nodes. Gateway API is available via the OpenShift Service Mesh or Istio operator.');
+  }
+
+  if (s.platform === 'bare_metal') {
+    insights.push('Bare metal deployments offer the lowest latency but require manual driver management. Consider using Kubernetes with the NVIDIA device plugin, and set up MetalLB or equivalent for external load balancing.');
+  }
+
+  insights.push('Estimated monthly cost of $' + cfg.monthlyCostLow.toLocaleString() + ' - $' + cfg.monthlyCostHigh.toLocaleString() + ' is based on on-demand ' + cfg.gpu.label + ' pricing. Reserved instances or spot pricing can reduce this by 30-70%.');
+
+  const el = document.getElementById('insightsList');
+  if (el) {
+    el.innerHTML = insights.map(t => '<div class="insight-item">' + t + '</div>').join('');
+  }
 }
 
-// ── Architecture SVG ───────────────────────────────────────
+
+/* ====================================================================
+   9. ARCHITECTURE SVG DIAGRAM
+   ==================================================================== */
+
 function drawArchitecture(cfg) {
-  const W = 900, H = cfg.disaggregate ? 520 : 440;
+  const W = 900, H = cfg.disaggregate ? 540 : 460;
   const mid = W / 2;
 
-  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="font-family:'Red Hat Text',sans-serif">`;
-  svg += `<defs>
-    <filter id="shadow"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-opacity="0.1"/></filter>
-    <marker id="arrowPurple" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#9b4d9b"/></marker>
-    <marker id="arrowBlue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#2d7ff9"/></marker>
-    <marker id="arrowGreen" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#1a9d5c"/></marker>
-    <marker id="arrowOrange" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#e67e22"/></marker>
-    <marker id="arrowCyan" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#0ea5e9"/></marker>
-  </defs>`;
+  let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="font-family:\'Red Hat Text\',sans-serif">';
+  svg += '<defs>' +
+    '<filter id="ds"><feDropShadow dx="0" dy="2" stdDeviation="6" flood-color="#000" flood-opacity="0.3"/></filter>' +
+    '<marker id="aPrimary" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#3b82f6"/></marker>' +
+    '<marker id="aAccent" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#8b5cf6"/></marker>' +
+    '<marker id="aGreen" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#10b981"/></marker>' +
+    '<marker id="aOrange" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#f59e0b"/></marker>' +
+    '<marker id="aCyan" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#06b6d4"/></marker>' +
+    '<marker id="aIndigo" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#6366f1"/></marker>' +
+  '</defs>';
 
-  // ── Helpers ──
-  function box(x,y,w,h,fill,stroke,label,sublabel,rx=12) {
-    return `<g filter="url(#shadow)">
-      <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="${fill}" stroke="${stroke}" stroke-width="2"/>
-      <text x="${x+w/2}" y="${y+h/2-( sublabel?6:0)}" text-anchor="middle" fill="${stroke}" font-weight="700" font-size="13">${label}</text>
-      ${sublabel ? `<text x="${x+w/2}" y="${y+h/2+14}" text-anchor="middle" fill="${stroke}" font-size="10" opacity="0.8">${sublabel}</text>` : ''}
-    </g>`;
+  function box(x,y,w,h,fill,stroke,label,sub,rx) {
+    rx = rx || 10;
+    return '<g filter="url(#ds)">' +
+      '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="'+rx+'" fill="'+fill+'" stroke="'+stroke+'" stroke-width="2"/>' +
+      '<text x="'+(x+w/2)+'" y="'+(y+h/2-(sub?6:0))+'" text-anchor="middle" fill="'+stroke+'" font-weight="700" font-size="12.5">'+label+'</text>' +
+      (sub ? '<text x="'+(x+w/2)+'" y="'+(y+h/2+13)+'" text-anchor="middle" fill="'+stroke+'" font-size="9.5" opacity="0.75">'+sub+'</text>' : '') +
+    '</g>';
   }
 
-  function arrow(x1,y1,x2,y2,color,markerId) {
-    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="2" marker-end="url(#${markerId})">
-      <animate attributeName="stroke-dashoffset" from="20" to="0" dur="1.5s" repeatCount="indefinite"/>
-    </line>`;
+  function animArrow(x1,y1,x2,y2,color,marker) {
+    return '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+color+'" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#'+marker+')">' +
+      '<animate attributeName="stroke-dashoffset" from="20" to="0" dur="1.5s" repeatCount="indefinite"/>' +
+    '</line>';
   }
 
-  function animatedArrow(x1,y1,x2,y2,color,markerId) {
-    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#${markerId})">
-      <animate attributeName="stroke-dashoffset" from="20" to="0" dur="1.5s" repeatCount="indefinite"/>
-    </line>`;
-  }
+  // Client
+  svg += '<g>' +
+    '<rect x="'+(mid-55)+'" y="16" width="110" height="40" rx="20" fill="rgba(59,130,246,0.1)" stroke="#3b82f6" stroke-width="2"/>' +
+    '<text x="'+mid+'" y="41" text-anchor="middle" fill="#3b82f6" font-weight="700" font-size="13">Clients</text>' +
+  '</g>';
 
-  // ── Client ──
-  svg += `<g>
-    <rect x="${mid-50}" y="16" width="100" height="40" rx="20" fill="#f3e8f3" stroke="#9b4d9b" stroke-width="2"/>
-    <text x="${mid}" y="41" text-anchor="middle" fill="#9b4d9b" font-weight="700" font-size="13">Clients</text>
-  </g>`;
+  // Client -> Gateway
+  svg += animArrow(mid, 56, mid, 82, '#6366f1', 'aIndigo');
 
-  // Arrow: Client -> Gateway
-  svg += animatedArrow(mid, 56, mid, 82, '#9b4d9b', 'arrowPurple');
+  // Gateway
+  svg += box(mid-85, 86, 170, 50, 'rgba(99,102,241,0.08)', '#6366f1', 'Gateway API', cfg.gatewayClass);
 
-  // ── Gateway ──
-  svg += box(mid-80, 86, 160, 50, '#eef0ff', '#6366f1', 'Gateway API', 'Kubernetes Gateway');
+  // Gateway -> EPP
+  svg += animArrow(mid, 136, mid, 166, '#8b5cf6', 'aAccent');
 
-  // Arrow: Gateway -> EPP
-  svg += animatedArrow(mid, 136, mid, 162, '#6366f1', 'arrowPurple');
+  // EPP
+  svg += box(mid-105, 170, 210, 56, 'rgba(139,92,246,0.08)', '#8b5cf6', 'llm-d EPP', cfg.routingStrategy);
 
-  // ── EPP ──
-  const eppSub = cfg.routingStrategy;
-  svg += box(mid-100, 166, 200, 56, '#f3e8f3', '#9b4d9b', 'llm-d EPP', eppSub);
-
-  // ── Workers ──
-  const workerY = 280;
+  // Workers
+  const workerY = 290;
   if (cfg.disaggregate) {
-    // Prefill workers
-    const prefillCount = cfg.prefillReplicas;
-    const decodeCount = cfg.decodeReplicas;
-    const totalWorkers = prefillCount + decodeCount;
-    const workerW = 120, workerH = 64, gap = 16;
-    const allW = totalWorkers * workerW + (totalWorkers - 1) * gap;
+    const pCount = cfg.prefillReplicas;
+    const dCount = cfg.decodeReplicas;
+    const total = pCount + dCount;
+    const wW = 115, wH = 60, gap = 14;
+    const allW = total * wW + (total - 1) * gap;
     const startX = mid - allW / 2;
 
-    // Arrows from EPP to workers
-    for (let i = 0; i < prefillCount; i++) {
-      const wx = startX + i * (workerW + gap) + workerW / 2;
-      svg += animatedArrow(mid, 222, wx, workerY - 4, '#2d7ff9', 'arrowBlue');
+    // EPP -> workers arrows
+    for (let i = 0; i < pCount; i++) {
+      svg += animArrow(mid, 226, startX + i*(wW+gap) + wW/2, workerY - 4, '#3b82f6', 'aPrimary');
     }
-    for (let i = 0; i < decodeCount; i++) {
-      const wx = startX + (prefillCount + i) * (workerW + gap) + workerW / 2;
-      svg += animatedArrow(mid, 222, wx, workerY - 4, '#1a9d5c', 'arrowGreen');
+    for (let i = 0; i < dCount; i++) {
+      svg += animArrow(mid, 226, startX + (pCount+i)*(wW+gap) + wW/2, workerY - 4, '#10b981', 'aGreen');
     }
 
     // Prefill boxes
-    for (let i = 0; i < prefillCount; i++) {
-      const bx = startX + i * (workerW + gap);
-      svg += box(bx, workerY, workerW, workerH, '#e8f0fe', '#2d7ff9', `Prefill ${i+1}`, `${cfg.gpuCount} GPU, TP=${cfg.tp}`);
+    for (let i = 0; i < pCount; i++) {
+      svg += box(startX + i*(wW+gap), workerY, wW, wH, 'rgba(59,130,246,0.08)', '#3b82f6', 'Prefill '+(i+1), cfg.gpuCount+' GPU, TP='+cfg.tp);
     }
     // Decode boxes
-    for (let i = 0; i < decodeCount; i++) {
-      const bx = startX + (prefillCount + i) * (workerW + gap);
-      svg += box(bx, workerY, workerW, workerH, '#e6f7ed', '#1a9d5c', `Decode ${i+1}`, `${cfg.gpuCount} GPU, TP=${cfg.tp}`);
+    for (let i = 0; i < dCount; i++) {
+      svg += box(startX + (pCount+i)*(wW+gap), workerY, wW, wH, 'rgba(16,185,129,0.08)', '#10b981', 'Decode '+(i+1), cfg.gpuCount+' GPU, TP='+cfg.tp);
     }
 
-    // KV Cache Transfer arrows between prefill and decode
-    const kvY = workerY + workerH + 10;
-    const pLastX = startX + (prefillCount - 1) * (workerW + gap) + workerW;
-    const dFirstX = startX + prefillCount * (workerW + gap);
-    svg += `<line x1="${pLastX+4}" y1="${workerY+workerH/2}" x2="${dFirstX-4}" y2="${workerY+workerH/2}" stroke="#9b4d9b" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arrowPurple)"/>`;
-    svg += `<text x="${(pLastX+dFirstX)/2}" y="${workerY+workerH/2-8}" text-anchor="middle" fill="#9b4d9b" font-size="9" font-weight="600">KV Transfer</text>`;
+    // KV Transfer
+    if (pCount > 0 && dCount > 0) {
+      const pLast = startX + (pCount-1)*(wW+gap) + wW;
+      const dFirst = startX + pCount*(wW+gap);
+      svg += '<line x1="'+(pLast+4)+'" y1="'+(workerY+wH/2)+'" x2="'+(dFirst-4)+'" y2="'+(workerY+wH/2)+'" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#aAccent)"/>';
+      svg += '<text x="'+((pLast+dFirst)/2)+'" y="'+(workerY+wH/2-8)+'" text-anchor="middle" fill="#8b5cf6" font-size="9" font-weight="600">KV Transfer</text>';
+    }
 
-    // Monitoring
-    const monY = workerY + workerH + 40;
-    svg += box(mid - 90, monY, 180, 48, '#fef4e8', '#e67e22', 'Prometheus', 'ServiceMonitor + Alerts');
-    // Arrows from workers to monitoring
-    svg += animatedArrow(startX + workerW/2, workerY + workerH, mid - 40, monY, '#e67e22', 'arrowOrange');
-    svg += animatedArrow(startX + (totalWorkers-1)*(workerW+gap) + workerW/2, workerY + workerH, mid + 40, monY, '#e67e22', 'arrowOrange');
+    // Monitoring row
+    const monY = workerY + wH + 45;
+    svg += box(mid-90, monY, 180, 48, 'rgba(245,158,11,0.08)', '#f59e0b', 'Prometheus', 'Metrics + Alerts');
+    svg += animArrow(startX + wW/2, workerY+wH, mid-40, monY, '#f59e0b', 'aOrange');
+    svg += animArrow(startX + (total-1)*(wW+gap) + wW/2, workerY+wH, mid+40, monY, '#f59e0b', 'aOrange');
 
     // HPA
-    const hpaY = monY;
-    svg += box(mid + 130, hpaY, 160, 48, '#e8f8fd', '#0ea5e9', 'HPA Autoscaler', `${cfg.hpaMin}–${cfg.hpaMax} replicas`);
-    svg += animatedArrow(mid + 90, monY + 24, mid + 130, hpaY + 24, '#0ea5e9', 'arrowCyan');
+    svg += box(mid+130, monY, 160, 48, 'rgba(6,182,212,0.08)', '#06b6d4', 'HPA Autoscaler', cfg.hpaMin+' - '+cfg.hpaMax+' replicas');
+    svg += animArrow(mid+90, monY+24, mid+130, monY+24, '#06b6d4', 'aCyan');
 
   } else {
-    // Unified workers
-    const count = cfg.replicas;
-    const workerW = 130, workerH = 64, gap = 20;
-    const allW = count * workerW + (count - 1) * gap;
+    const count = Math.min(cfg.replicas, 4);
+    const wW = 125, wH = 60, gap = 18;
+    const allW = count * wW + (count - 1) * gap;
     const startX = mid - allW / 2;
 
     for (let i = 0; i < count; i++) {
-      const wx = startX + i * (workerW + gap) + workerW / 2;
-      svg += animatedArrow(mid, 222, wx, workerY - 4, '#2d7ff9', 'arrowBlue');
+      const wx = startX + i*(wW+gap) + wW/2;
+      svg += animArrow(mid, 226, wx, workerY - 4, '#3b82f6', 'aPrimary');
     }
 
     for (let i = 0; i < count; i++) {
-      const bx = startX + i * (workerW + gap);
-      svg += box(bx, workerY, workerW, workerH, '#e8f0fe', '#2d7ff9', `vLLM Pod ${i+1}`, `${cfg.gpuCount} GPU, TP=${cfg.tp}`);
-
-      // KV Cache indicator
-      if (cfg.enablePrefixCaching) {
-        const cacheBarY = workerY + workerH - 12;
-        const cacheW = workerW - 20;
-        const fillW = cacheW * (0.6 + Math.random() * 0.3);
-        svg += `<rect x="${bx+10}" y="${cacheBarY}" width="${cacheW}" height="5" rx="2" fill="#ddd" opacity="0.5"/>`;
-        svg += `<rect x="${bx+10}" y="${cacheBarY}" width="${fillW}" height="5" rx="2" fill="#2d7ff9" opacity="0.6"/>`;
-      }
+      const bx = startX + i*(wW+gap);
+      const lbl = cfg.replicas > 4 && i === count - 1 ? '+' + (cfg.replicas - 3) + ' more' : 'vLLM Pod ' + (i+1);
+      svg += box(bx, workerY, wW, wH, 'rgba(59,130,246,0.08)', '#3b82f6', lbl, cfg.gpuCount+' GPU, TP='+cfg.tp);
     }
 
-    // Monitoring
-    const monY = workerY + workerH + 40;
-    svg += box(mid - 90, monY, 180, 48, '#fef4e8', '#e67e22', 'Prometheus', 'ServiceMonitor + Alerts');
-    svg += animatedArrow(startX + workerW/2, workerY + workerH, mid - 30, monY, '#e67e22', 'arrowOrange');
-    if (count > 1) svg += animatedArrow(startX + (count-1)*(workerW+gap) + workerW/2, workerY + workerH, mid + 30, monY, '#e67e22', 'arrowOrange');
+    const monY = workerY + wH + 45;
+    svg += box(mid-90, monY, 180, 48, 'rgba(245,158,11,0.08)', '#f59e0b', 'Prometheus', 'Metrics + Alerts');
+    svg += animArrow(startX + wW/2, workerY+wH, mid-30, monY, '#f59e0b', 'aOrange');
+    if (count > 1) svg += animArrow(startX + (count-1)*(wW+gap) + wW/2, workerY+wH, mid+30, monY, '#f59e0b', 'aOrange');
 
-    // HPA
-    const hpaY = monY;
-    svg += box(mid + 130, hpaY, 160, 48, '#e8f8fd', '#0ea5e9', 'HPA Autoscaler', `${cfg.hpaMin}–${cfg.hpaMax} replicas`);
-    svg += animatedArrow(mid + 90, monY + 24, mid + 130, hpaY + 24, '#0ea5e9', 'arrowCyan');
+    svg += box(mid+130, monY, 160, 48, 'rgba(6,182,212,0.08)', '#06b6d4', 'HPA Autoscaler', cfg.hpaMin+' - '+cfg.hpaMax+' replicas');
+    svg += animArrow(mid+90, monY+24, mid+130, monY+24, '#06b6d4', 'aCyan');
   }
 
   svg += '</svg>';
-  document.getElementById('archDiagram').innerHTML = svg;
+  const el = document.getElementById('archDiagram');
+  if (el) el.innerHTML = svg;
 }
 
-// ── Config Tabs ────────────────────────────────────────────
-let configData = {};
+
+/* ====================================================================
+   10. CONFIG TABS & GENERATION
+   ==================================================================== */
 
 function buildConfigTabs(cfg) {
   const s = selections;
   configData = {};
 
-  // ── 1. Helm values.yaml ──
-  let helmParts = [];
-  helmParts.push(`# llm-d Helm values.yaml`);
-  helmParts.push(`# Generated for ${cfg.model.name.split('/').pop()} on ${cfg.gpuLabel}`);
-  helmParts.push(`# Routing: ${cfg.routingStrategy} | Cache: ${cfg.cachePolicy}`);
-  helmParts.push(``);
-  helmParts.push(`model:`);
-  helmParts.push(`  name: "${cfg.model.name}"`);
-  helmParts.push(`  maxModelLen: ${cfg.model.maxLen}`);
-  helmParts.push(``);
-  helmParts.push(`serving:`);
-  helmParts.push(`  image: ghcr.io/llm-d/llm-d:latest`);
-  helmParts.push(`  tensorParallelSize: ${cfg.tp}`);
-  helmParts.push(`  enablePrefixCaching: ${cfg.enablePrefixCaching}`);
+  const modelSlug = cfg.model.name.split('/').pop();
+  const modelSlugLower = modelSlug.toLowerCase();
+  const gpuResource = cfg.gpuType === 'mi300x' ? 'amd.com/gpu' : 'nvidia.com/gpu';
+
+  // ── 1. Helm values.yaml
+  let helm = [];
+  helm.push('# llm-d Helm values.yaml');
+  helm.push('# Generated for ' + modelSlug + ' on ' + cfg.gpu.label);
+  helm.push('# Routing: ' + cfg.routingStrategy + ' | Cache: ' + cfg.cachePolicy);
+  helm.push('# Est. cost: $' + cfg.monthlyCostLow.toLocaleString() + '-$' + cfg.monthlyCostHigh.toLocaleString() + '/mo');
+  helm.push('');
+  helm.push('model:');
+  helm.push('  name: "' + cfg.model.name + '"');
+  helm.push('  maxModelLen: ' + cfg.model.maxLen);
+  helm.push('');
+  helm.push('serving:');
+  helm.push('  image: ghcr.io/llm-d/llm-d:latest');
+  helm.push('  tensorParallelSize: ' + cfg.tp);
+  helm.push('  enablePrefixCaching: ' + cfg.enablePrefixCaching);
   if (cfg.enableLoRA) {
-    helmParts.push(`  enableLoRA: true`);
-    helmParts.push(`  maxLoraRank: ${cfg.maxLoraRank}`);
-  }
-  helmParts.push(``);
-
-  if (cfg.disaggregate) {
-    helmParts.push(`disaggregatedServing:`);
-    helmParts.push(`  enabled: true`);
-    helmParts.push(`  prefill:`);
-    helmParts.push(`    replicas: ${cfg.prefillReplicas}`);
-    helmParts.push(`    resources:`);
-    helmParts.push(`      limits:`);
-    helmParts.push(`        nvidia.com/gpu: "${cfg.gpuCount}"`);
-    helmParts.push(`  decode:`);
-    helmParts.push(`    replicas: ${cfg.decodeReplicas}`);
-    helmParts.push(`    resources:`);
-    helmParts.push(`      limits:`);
-    helmParts.push(`        nvidia.com/gpu: "${cfg.gpuCount}"`);
-  } else {
-    helmParts.push(`replicas: ${cfg.replicas}`);
-    helmParts.push(``);
-    helmParts.push(`resources:`);
-    helmParts.push(`  limits:`);
-    if (s.gpuHardware === 'mi300x') {
-      helmParts.push(`    amd.com/gpu: "${cfg.gpuCount}"`);
-    } else {
-      helmParts.push(`    nvidia.com/gpu: "${cfg.gpuCount}"`);
-    }
-  }
-
-  helmParts.push(``);
-  helmParts.push(`epp:`);
-  helmParts.push(`  enabled: true`);
-  helmParts.push(`  image: ghcr.io/llm-d/llm-d-inference-scheduler:latest`);
-  helmParts.push(`  routingStrategy: "${cfg.routingStrategy}"`);
-  helmParts.push(`  cachePolicy: "${cfg.cachePolicy}"`);
-  if (s.multiTenancy === 'single_multi') {
-    helmParts.push(`  priorityScheduling:`);
-    helmParts.push(`    enabled: true`);
-    helmParts.push(`    defaultPriority: 5`);
-  }
-  helmParts.push(``);
-  helmParts.push(`gateway:`);
-  helmParts.push(`  enabled: true`);
-  helmParts.push(`  className: istio  # or envoy-gateway`);
-  helmParts.push(``);
-  helmParts.push(`monitoring:`);
-  helmParts.push(`  serviceMonitor:`);
-  helmParts.push(`    enabled: true`);
-  helmParts.push(`  prometheusRule:`);
-  helmParts.push(`    enabled: true`);
-  helmParts.push(``);
-  helmParts.push(`autoscaling:`);
-  helmParts.push(`  enabled: true`);
-  helmParts.push(`  minReplicas: ${cfg.hpaMin}`);
-  helmParts.push(`  maxReplicas: ${cfg.hpaMax}`);
-  helmParts.push(`  metric: "${cfg.hpaMetric}"`);
-  helmParts.push(`  threshold: ${cfg.hpaThreshold}`);
-
-  configData['Helm values.yaml'] = helmParts.join('\n');
-
-  // ── 2. vLLM Engine Args ──
-  let vllmParts = [];
-  vllmParts.push(`# vLLM Engine Arguments`);
-  vllmParts.push(`# Paste these into your vLLM deployment command or container args`);
-  vllmParts.push(``);
-  vllmParts.push(`python -m vllm.entrypoints.openai.api_server \\`);
-  vllmParts.push(`  --model ${cfg.model.name} \\`);
-  vllmParts.push(`  --tensor-parallel-size ${cfg.tp} \\`);
-  vllmParts.push(`  --max-model-len ${cfg.model.maxLen} \\`);
-  if (cfg.enablePrefixCaching) vllmParts.push(`  --enable-prefix-caching \\`);
-  if (cfg.enableLoRA) {
-    vllmParts.push(`  --enable-lora \\`);
-    vllmParts.push(`  --max-lora-rank ${cfg.maxLoraRank} \\`);
-  }
-  if (s.gpuHardware === 'mi300x') {
-    vllmParts.push(`  --device rocm \\`);
+    helm.push('  enableLoRA: true');
+    helm.push('  maxLoraRank: ' + cfg.maxLoraRank);
   }
   if (s.modelSize === '405b') {
-    vllmParts.push(`  --quantization fp8 \\`);
-    vllmParts.push(`  --pipeline-parallel-size ${Math.ceil(cfg.totalGPUs / (cfg.disaggregate ? (cfg.prefillReplicas + cfg.decodeReplicas) : cfg.replicas) / 8)} \\`);
+    helm.push('  quantization: fp8');
+  }
+  helm.push('');
+
+  if (cfg.disaggregate) {
+    helm.push('disaggregatedServing:');
+    helm.push('  enabled: true');
+    helm.push('  prefill:');
+    helm.push('    replicas: ' + cfg.prefillReplicas);
+    helm.push('    resources:');
+    helm.push('      limits:');
+    helm.push('        ' + gpuResource + ': "' + cfg.gpuCount + '"');
+    helm.push('  decode:');
+    helm.push('    replicas: ' + cfg.decodeReplicas);
+    helm.push('    resources:');
+    helm.push('      limits:');
+    helm.push('        ' + gpuResource + ': "' + cfg.gpuCount + '"');
+  } else {
+    helm.push('replicas: ' + cfg.replicas);
+    helm.push('');
+    helm.push('resources:');
+    helm.push('  limits:');
+    helm.push('    ' + gpuResource + ': "' + cfg.gpuCount + '"');
+  }
+
+  helm.push('');
+  helm.push('epp:');
+  helm.push('  enabled: true');
+  helm.push('  image: ghcr.io/llm-d/llm-d-inference-scheduler:latest');
+  helm.push('  routingStrategy: "' + cfg.routingStrategy + '"');
+  helm.push('  cachePolicy: "' + cfg.cachePolicy + '"');
+  if (s.multiTenancy === 'single_multi') {
+    helm.push('  priorityScheduling:');
+    helm.push('    enabled: true');
+    helm.push('    defaultPriority: 5');
+  }
+  helm.push('');
+  helm.push('gateway:');
+  helm.push('  enabled: true');
+  helm.push('  className: ' + cfg.gatewayClass);
+  helm.push('');
+  helm.push('monitoring:');
+  helm.push('  serviceMonitor:');
+  helm.push('    enabled: true');
+  helm.push('  prometheusRule:');
+  helm.push('    enabled: true');
+  helm.push('');
+  helm.push('autoscaling:');
+  helm.push('  enabled: true');
+  helm.push('  minReplicas: ' + cfg.hpaMin);
+  helm.push('  maxReplicas: ' + cfg.hpaMax);
+  helm.push('  metric: "' + cfg.hpaMetric + '"');
+  helm.push('  threshold: ' + cfg.hpaThreshold);
+
+  configData['Helm values.yaml'] = helm.join('\n');
+
+  // ── 2. vLLM Engine Args
+  let vllm = [];
+  vllm.push('# vLLM Engine Arguments');
+  vllm.push('# Paste into your vLLM deployment command or container args');
+  vllm.push('');
+  vllm.push('python -m vllm.entrypoints.openai.api_server \\');
+  vllm.push('  --model ' + cfg.model.name + ' \\');
+  vllm.push('  --tensor-parallel-size ' + cfg.tp + ' \\');
+  vllm.push('  --max-model-len ' + cfg.model.maxLen + ' \\');
+  if (cfg.enablePrefixCaching) vllm.push('  --enable-prefix-caching \\');
+  if (cfg.enableLoRA) {
+    vllm.push('  --enable-lora \\');
+    vllm.push('  --max-lora-rank ' + cfg.maxLoraRank + ' \\');
+  }
+  if (s.modelSize === '405b') {
+    vllm.push('  --quantization fp8 \\');
   }
   if (cfg.disaggregate) {
-    vllmParts.push(`  --enable-disaggregated-prefill \\`);
+    vllm.push('  --enable-disaggregated-prefill \\');
   }
-  vllmParts.push(`  --gpu-memory-utilization 0.90 \\`);
-  vllmParts.push(`  --max-num-seqs 256 \\`);
-  vllmParts.push(`  --port 8000 \\`);
-  vllmParts.push(`  --served-model-name ${cfg.model.name.split('/').pop()}`);
+  vllm.push('  --gpu-memory-utilization 0.90 \\');
+  vllm.push('  --max-num-seqs 256 \\');
+  vllm.push('  --port 8000 \\');
+  vllm.push('  --served-model-name ' + modelSlug);
 
-  configData['vLLM Engine Args'] = vllmParts.join('\n');
+  configData['vLLM Args'] = vllm.join('\n');
 
-  // ── 3. EPP Configuration ──
-  let eppParts = [];
-  eppParts.push(`# llm-d Endpoint Picker Plugin (EPP) Configuration`);
-  eppParts.push(`# Applied via InferencePool CRD`);
-  eppParts.push(``);
-  eppParts.push(`apiVersion: inference.networking.x-k8s.io/v1alpha2`);
-  eppParts.push(`kind: InferencePool`);
-  eppParts.push(`metadata:`);
-  eppParts.push(`  name: ${cfg.model.name.split('/').pop().toLowerCase()}-pool`);
-  eppParts.push(`spec:`);
-  eppParts.push(`  targetPortNumber: 8000`);
-  eppParts.push(`  selector:`);
-  eppParts.push(`    app: vllm-${cfg.model.name.split('/').pop().toLowerCase()}`);
-  eppParts.push(`  extensionRef:`);
-  eppParts.push(`    name: llm-d-epp`);
-  eppParts.push(`---`);
-  eppParts.push(`apiVersion: inference.networking.x-k8s.io/v1alpha2`);
-  eppParts.push(`kind: InferenceModel`);
-  eppParts.push(`metadata:`);
-  eppParts.push(`  name: ${cfg.model.name.split('/').pop().toLowerCase()}`);
-  eppParts.push(`spec:`);
-  eppParts.push(`  modelName: ${cfg.model.name.split('/').pop()}`);
-  eppParts.push(`  criticality: Critical`);
-  eppParts.push(`  poolRef:`);
-  eppParts.push(`    name: ${cfg.model.name.split('/').pop().toLowerCase()}-pool`);
+  // ── 3. EPP Config
+  let epp = [];
+  epp.push('# llm-d Endpoint Picker Plugin (EPP) Configuration');
+  epp.push('');
+  epp.push('apiVersion: inference.networking.x-k8s.io/v1alpha2');
+  epp.push('kind: InferencePool');
+  epp.push('metadata:');
+  epp.push('  name: ' + modelSlugLower + '-pool');
+  epp.push('spec:');
+  epp.push('  targetPortNumber: 8000');
+  epp.push('  selector:');
+  epp.push('    app: vllm-' + modelSlugLower);
+  epp.push('  extensionRef:');
+  epp.push('    name: llm-d-epp');
+  epp.push('---');
+  epp.push('apiVersion: inference.networking.x-k8s.io/v1alpha2');
+  epp.push('kind: InferenceModel');
+  epp.push('metadata:');
+  epp.push('  name: ' + modelSlugLower);
+  epp.push('spec:');
+  epp.push('  modelName: ' + modelSlug);
+  epp.push('  criticality: Critical');
+  epp.push('  poolRef:');
+  epp.push('    name: ' + modelSlugLower + '-pool');
 
   if (s.multiTenancy === 'single_multi') {
-    eppParts.push(`---`);
-    eppParts.push(`# Priority tiers for multi-team access`);
-    eppParts.push(`apiVersion: inference.networking.x-k8s.io/v1alpha2`);
-    eppParts.push(`kind: InferenceModel`);
-    eppParts.push(`metadata:`);
-    eppParts.push(`  name: ${cfg.model.name.split('/').pop().toLowerCase()}-low-priority`);
-    eppParts.push(`spec:`);
-    eppParts.push(`  modelName: ${cfg.model.name.split('/').pop()}-batch`);
-    eppParts.push(`  criticality: Standard`);
-    eppParts.push(`  targetModel: ${cfg.model.name.split('/').pop()}`);
-    eppParts.push(`  poolRef:`);
-    eppParts.push(`    name: ${cfg.model.name.split('/').pop().toLowerCase()}-pool`);
+    epp.push('---');
+    epp.push('# Low-priority tier for batch/background workloads');
+    epp.push('apiVersion: inference.networking.x-k8s.io/v1alpha2');
+    epp.push('kind: InferenceModel');
+    epp.push('metadata:');
+    epp.push('  name: ' + modelSlugLower + '-batch');
+    epp.push('spec:');
+    epp.push('  modelName: ' + modelSlug + '-batch');
+    epp.push('  criticality: Standard');
+    epp.push('  targetModel: ' + modelSlug);
+    epp.push('  poolRef:');
+    epp.push('    name: ' + modelSlugLower + '-pool');
   }
 
   if (cfg.enableLoRA) {
-    eppParts.push(`---`);
-    eppParts.push(`# LoRA adapter model (repeat for each adapter)`);
-    eppParts.push(`apiVersion: inference.networking.x-k8s.io/v1alpha2`);
-    eppParts.push(`kind: InferenceModel`);
-    eppParts.push(`metadata:`);
-    eppParts.push(`  name: ${cfg.model.name.split('/').pop().toLowerCase()}-lora-adapter-1`);
-    eppParts.push(`spec:`);
-    eppParts.push(`  modelName: my-custom-adapter`);
-    eppParts.push(`  criticality: Critical`);
-    eppParts.push(`  targetModel: ${cfg.model.name.split('/').pop()}`);
-    eppParts.push(`  poolRef:`);
-    eppParts.push(`    name: ${cfg.model.name.split('/').pop().toLowerCase()}-pool`);
+    epp.push('---');
+    epp.push('# LoRA adapter (repeat for each adapter)');
+    epp.push('apiVersion: inference.networking.x-k8s.io/v1alpha2');
+    epp.push('kind: InferenceModel');
+    epp.push('metadata:');
+    epp.push('  name: ' + modelSlugLower + '-lora-v1');
+    epp.push('spec:');
+    epp.push('  modelName: my-custom-adapter');
+    epp.push('  criticality: Critical');
+    epp.push('  targetModel: ' + modelSlug);
+    epp.push('  poolRef:');
+    epp.push('    name: ' + modelSlugLower + '-pool');
   }
 
-  configData['EPP Config'] = eppParts.join('\n');
+  configData['EPP Config'] = epp.join('\n');
 
-  // ── 4. Monitoring ──
-  let monParts = [];
-  monParts.push(`# ServiceMonitor for Prometheus scraping`);
-  monParts.push(`apiVersion: monitoring.coreos.com/v1`);
-  monParts.push(`kind: ServiceMonitor`);
-  monParts.push(`metadata:`);
-  monParts.push(`  name: vllm-metrics`);
-  monParts.push(`  labels:`);
-  monParts.push(`    release: prometheus`);
-  monParts.push(`spec:`);
-  monParts.push(`  selector:`);
-  monParts.push(`    matchLabels:`);
-  monParts.push(`      app: vllm-${cfg.model.name.split('/').pop().toLowerCase()}`);
-  monParts.push(`  endpoints:`);
-  monParts.push(`    - port: metrics`);
-  monParts.push(`      interval: 15s`);
-  monParts.push(`      path: /metrics`);
-  monParts.push(`---`);
-  monParts.push(`# PrometheusRule for alerting`);
-  monParts.push(`apiVersion: monitoring.coreos.com/v1`);
-  monParts.push(`kind: PrometheusRule`);
-  monParts.push(`metadata:`);
-  monParts.push(`  name: vllm-alerts`);
-  monParts.push(`spec:`);
-  monParts.push(`  groups:`);
-  monParts.push(`    - name: vllm.rules`);
-  monParts.push(`      rules:`);
-  monParts.push(`        - alert: HighQueueDepth`);
-  monParts.push(`          expr: vllm:num_requests_waiting > ${cfg.hpaThreshold * 2}`);
-  monParts.push(`          for: 5m`);
-  monParts.push(`          labels:`);
-  monParts.push(`            severity: warning`);
-  monParts.push(`          annotations:`);
-  monParts.push(`            summary: "vLLM queue depth is high"`);
-  monParts.push(`            description: "Request queue has been above ${cfg.hpaThreshold * 2} for 5 minutes"`);
-  monParts.push(`        - alert: HighGPUCacheUsage`);
-  monParts.push(`          expr: vllm:gpu_cache_usage_perc > 95`);
-  monParts.push(`          for: 10m`);
-  monParts.push(`          labels:`);
-  monParts.push(`            severity: critical`);
-  monParts.push(`          annotations:`);
-  monParts.push(`            summary: "GPU KV cache near capacity"`);
-  monParts.push(`            description: "KV cache usage above 95% — may cause request rejections"`);
-  monParts.push(`        - alert: HighTTFT`);
-
+  // ── 4. Monitoring
+  let mon = [];
   let ttftThreshold = '2';
   if (s.latencyTarget === 'p50_500') ttftThreshold = '0.5';
   else if (s.latencyTarget === 'p50_200') ttftThreshold = '0.2';
   else if (s.latencyTarget === 'p50_100') ttftThreshold = '0.1';
 
-  monParts.push(`          expr: histogram_quantile(0.95, rate(vllm:time_to_first_token_seconds_bucket[5m])) > ${ttftThreshold}`);
-  monParts.push(`          for: 5m`);
-  monParts.push(`          labels:`);
-  monParts.push(`            severity: warning`);
-  monParts.push(`          annotations:`);
-  monParts.push(`            summary: "TTFT exceeds SLA target"`);
-  monParts.push(`            description: "P95 TTFT is above ${ttftThreshold}s target"`);
-  monParts.push(`        - alert: LowCacheHitRate`);
-  monParts.push(`          expr: vllm:prefix_cache_hit_rate < 0.3`);
-  monParts.push(`          for: 15m`);
-  monParts.push(`          labels:`);
-  monParts.push(`            severity: info`);
-  monParts.push(`          annotations:`);
-  monParts.push(`            summary: "Prefix cache hit rate is low"`);
-  monParts.push(`            description: "Cache hit rate below 30% — verify routing strategy"`);
+  mon.push('# ServiceMonitor + PrometheusRules');
+  mon.push('apiVersion: monitoring.coreos.com/v1');
+  mon.push('kind: ServiceMonitor');
+  mon.push('metadata:');
+  mon.push('  name: vllm-metrics');
+  mon.push('  labels:');
+  mon.push('    release: prometheus');
+  mon.push('spec:');
+  mon.push('  selector:');
+  mon.push('    matchLabels:');
+  mon.push('      app: vllm-' + modelSlugLower);
+  mon.push('  endpoints:');
+  mon.push('    - port: metrics');
+  mon.push('      interval: 15s');
+  mon.push('      path: /metrics');
+  mon.push('---');
+  mon.push('apiVersion: monitoring.coreos.com/v1');
+  mon.push('kind: PrometheusRule');
+  mon.push('metadata:');
+  mon.push('  name: vllm-alerts');
+  mon.push('spec:');
+  mon.push('  groups:');
+  mon.push('    - name: vllm.rules');
+  mon.push('      rules:');
+  mon.push('        - alert: HighTTFT');
+  mon.push('          expr: histogram_quantile(0.95, rate(vllm:time_to_first_token_seconds_bucket[5m])) > ' + ttftThreshold);
+  mon.push('          for: 5m');
+  mon.push('          labels:');
+  mon.push('            severity: warning');
+  mon.push('          annotations:');
+  mon.push('            summary: "P95 TTFT exceeds ' + ttftThreshold + 's SLA"');
+  mon.push('        - alert: HighQueueDepth');
+  mon.push('          expr: vllm:num_requests_waiting > ' + (cfg.hpaThreshold * 2));
+  mon.push('          for: 5m');
+  mon.push('          labels:');
+  mon.push('            severity: warning');
+  mon.push('        - alert: HighGPUCacheUsage');
+  mon.push('          expr: vllm:gpu_cache_usage_perc > 95');
+  mon.push('          for: 10m');
+  mon.push('          labels:');
+  mon.push('            severity: critical');
+  mon.push('          annotations:');
+  mon.push('            summary: "GPU KV cache above 95%"');
 
-  configData['Monitoring'] = monParts.join('\n');
+  configData['Monitoring'] = mon.join('\n');
 
-  // ── 5. HPA ──
-  let hpaParts = [];
-  hpaParts.push(`# HorizontalPodAutoscaler for vLLM workloads`);
-  hpaParts.push(`apiVersion: autoscaling/v2`);
-  hpaParts.push(`kind: HorizontalPodAutoscaler`);
-  hpaParts.push(`metadata:`);
-  hpaParts.push(`  name: vllm-hpa`);
-  hpaParts.push(`spec:`);
-  hpaParts.push(`  scaleTargetRef:`);
-  hpaParts.push(`    apiVersion: apps/v1`);
-  hpaParts.push(`    kind: Deployment`);
-  hpaParts.push(`    name: vllm-${cfg.model.name.split('/').pop().toLowerCase()}`);
-  hpaParts.push(`  minReplicas: ${cfg.hpaMin}`);
-  hpaParts.push(`  maxReplicas: ${cfg.hpaMax}`);
-  hpaParts.push(`  metrics:`);
-  hpaParts.push(`    - type: Pods`);
-  hpaParts.push(`      pods:`);
-  hpaParts.push(`        metric:`);
-  hpaParts.push(`          name: ${cfg.hpaMetric}`);
-  hpaParts.push(`        target:`);
-  hpaParts.push(`          type: AverageValue`);
-  hpaParts.push(`          averageValue: "${cfg.hpaThreshold}"`);
-  hpaParts.push(`  behavior:`);
-  hpaParts.push(`    scaleUp:`);
-  hpaParts.push(`      stabilizationWindowSeconds: 60`);
-  hpaParts.push(`      policies:`);
-  hpaParts.push(`        - type: Pods`);
-  hpaParts.push(`          value: 2`);
-  hpaParts.push(`          periodSeconds: 120`);
-  hpaParts.push(`    scaleDown:`);
-  hpaParts.push(`      stabilizationWindowSeconds: 300`);
-  hpaParts.push(`      policies:`);
-  hpaParts.push(`        - type: Pods`);
-  hpaParts.push(`          value: 1`);
-  hpaParts.push(`          periodSeconds: 300`);
+  // ── 5. HPA
+  let hpa = [];
+  hpa.push('# HorizontalPodAutoscaler');
+  hpa.push('apiVersion: autoscaling/v2');
+  hpa.push('kind: HorizontalPodAutoscaler');
+  hpa.push('metadata:');
+  hpa.push('  name: vllm-hpa');
+  hpa.push('spec:');
+  hpa.push('  scaleTargetRef:');
+  hpa.push('    apiVersion: apps/v1');
+  hpa.push('    kind: Deployment');
+  hpa.push('    name: vllm-' + modelSlugLower);
+  hpa.push('  minReplicas: ' + cfg.hpaMin);
+  hpa.push('  maxReplicas: ' + cfg.hpaMax);
+  hpa.push('  metrics:');
+  hpa.push('    - type: Pods');
+  hpa.push('      pods:');
+  hpa.push('        metric:');
+  hpa.push('          name: ' + cfg.hpaMetric);
+  hpa.push('        target:');
+  hpa.push('          type: AverageValue');
+  hpa.push('          averageValue: "' + cfg.hpaThreshold + '"');
+  hpa.push('  behavior:');
+  hpa.push('    scaleUp:');
+  hpa.push('      stabilizationWindowSeconds: 60');
+  hpa.push('      policies:');
+  hpa.push('        - type: Pods');
+  hpa.push('          value: 2');
+  hpa.push('          periodSeconds: 120');
+  hpa.push('    scaleDown:');
+  hpa.push('      stabilizationWindowSeconds: 300');
+  hpa.push('      policies:');
+  hpa.push('        - type: Pods');
+  hpa.push('          value: 1');
+  hpa.push('          periodSeconds: 300');
 
-  configData['HPA Scaling'] = hpaParts.join('\n');
+  configData['HPA'] = hpa.join('\n');
+
+  // ── 6. Quick Start shell commands
+  let shell = [];
+  shell.push('#!/bin/bash');
+  shell.push('# Quick-start deployment commands for ' + modelSlug);
+  shell.push('# Generated by llm-d Choose Your Own Inference Stack');
+  shell.push('');
+  shell.push('# 1. Add the llm-d Helm repo');
+  shell.push('helm repo add llm-d https://llm-d.github.io/llm-d-deployer');
+  shell.push('helm repo update');
+  shell.push('');
+  shell.push('# 2. Create namespace');
+  shell.push('kubectl create namespace llm-serving');
+  shell.push('');
+  shell.push('# 3. Install llm-d with generated values');
+  shell.push('helm install ' + modelSlugLower + ' llm-d/llm-d \\');
+  shell.push('  --namespace llm-serving \\');
+  shell.push('  -f values.yaml');
+  shell.push('');
+  shell.push('# 4. Verify pods are running');
+  shell.push('kubectl get pods -n llm-serving -w');
+  shell.push('');
+  shell.push('# 5. Test the endpoint');
+  shell.push('GATEWAY_IP=$(kubectl get svc -n llm-serving -o jsonpath=\'{.items[0].status.loadBalancer.ingress[0].ip}\')');
+  shell.push('curl -s http://$GATEWAY_IP/v1/chat/completions \\');
+  shell.push('  -H "Content-Type: application/json" \\');
+  shell.push('  -d \'{"model": "' + modelSlug + '", "messages": [{"role": "user", "content": "Hello!"}]}\'');
+
+  configData['Quick Start'] = shell.join('\n');
 
   // Render tabs
   const tabKeys = Object.keys(configData);
@@ -1199,31 +1662,30 @@ function buildConfigTabs(cfg) {
   const contentEl = document.getElementById('configContent');
 
   tabsEl.innerHTML = tabKeys.map((k,i) =>
-    `<button class="config-tab${i===0?' active':''}" onclick="switchTab('${k}',this)">${k}</button>`
+    '<button class="config-tab' + (i===0?' active':'') + '" onclick="switchConfigTab(\'' + k.replace(/'/g,"\\'") + '\',this)">' + k + '</button>'
   ).join('');
 
-  // Render panes
   const existingPanes = contentEl.querySelectorAll('.config-pane');
   existingPanes.forEach(p => p.remove());
 
   tabKeys.forEach((k,i) => {
     const pane = document.createElement('div');
     pane.className = 'config-pane' + (i===0?' active':'');
-    pane.id = 'pane-' + k.replace(/[^a-zA-Z]/g,'');
-    pane.innerHTML = `<pre>${highlightYaml(configData[k])}</pre>`;
+    pane.id = 'pane-' + k.replace(/[^a-zA-Z0-9]/g,'');
+    pane.innerHTML = '<pre>' + highlightYaml(configData[k]) + '</pre>';
     contentEl.appendChild(pane);
   });
 }
 
-function switchTab(key, btn) {
+function switchConfigTab(key, btn) {
   document.querySelectorAll('.config-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.config-pane').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
-  const paneId = 'pane-' + key.replace(/[^a-zA-Z]/g,'');
+  const paneId = 'pane-' + key.replace(/[^a-zA-Z0-9]/g,'');
   const pane = document.getElementById(paneId);
   if (pane) pane.classList.add('active');
-  document.getElementById('copyBtn').textContent = 'Copy';
-  document.getElementById('copyBtn').classList.remove('copied');
+  const copyBtn = document.getElementById('copyBtn');
+  if (copyBtn) { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }
 }
 
 function highlightYaml(text) {
@@ -1237,12 +1699,15 @@ function highlightYaml(text) {
     .replace(/:\s+(latest|Critical|Standard|warning|critical|info)\s*$/gm, ': <span class="value">$1</span>');
 }
 
-// ── Copy ───────────────────────────────────────────────────
+
+/* ====================================================================
+   11. EXPORT / SHARE UTILITIES
+   ==================================================================== */
+
 function copyCurrentConfig() {
   const activePane = document.querySelector('.config-pane.active pre');
   if (!activePane) return;
-  const text = activePane.textContent;
-  navigator.clipboard.writeText(text).then(() => {
+  navigator.clipboard.writeText(activePane.textContent).then(() => {
     const btn = document.getElementById('copyBtn');
     btn.textContent = 'Copied!';
     btn.classList.add('copied');
@@ -1250,7 +1715,6 @@ function copyCurrentConfig() {
   });
 }
 
-// ── Share ──────────────────────────────────────────────────
 function shareConfig() {
   const params = new URLSearchParams();
   QUESTIONS.forEach(q => {
@@ -1258,32 +1722,528 @@ function shareConfig() {
   });
   const url = window.location.origin + window.location.pathname + '?' + params.toString();
   navigator.clipboard.writeText(url).then(() => {
-    alert('Shareable URL copied to clipboard!');
+    showToast('Shareable URL copied to clipboard');
   }).catch(() => {
     prompt('Copy this URL to share your configuration:', url);
   });
 }
 
-// ── Download Bundle ────────────────────────────────────────
 function downloadBundle() {
   let bundle = '';
   Object.entries(configData).forEach(([name, content]) => {
-    bundle += `# ${'='.repeat(60)}\n`;
-    bundle += `# FILE: ${name}\n`;
-    bundle += `# ${'='.repeat(60)}\n\n`;
+    bundle += '# ' + '='.repeat(60) + '\n';
+    bundle += '# FILE: ' + name + '\n';
+    bundle += '# ' + '='.repeat(60) + '\n\n';
     bundle += content + '\n\n';
   });
 
-  const blob = new Blob([bundle], { type: 'text/yaml' });
+  const blob = new Blob([bundle], {type:'text/yaml'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `llm-d-config-${selections.modelSize}-${selections.gpuHardware}.yaml`;
+  a.download = 'llm-d-config-' + (selections.modelSize || 'custom') + '.yaml';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+
+function showToast(msg) {
+  const toast = document.createElement('div');
+  toast.textContent = msg;
+  toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:12px 24px;border-radius:10px;font-size:0.88rem;font-weight:600;z-index:9999;animation:fadeSlideIn 0.3s ease;box-shadow:0 4px 16px rgba(0,0,0,0.4)';
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity 0.3s';
+    setTimeout(() => toast.remove(), 300);
+  }, 2500);
+}
+
+
+/* ====================================================================
+   12. COMPARE STACKS
+   ==================================================================== */
+
+function initCompare() {
+  const selector = document.getElementById('compareSelector');
+  const presets = Object.values(STACK_PRESETS);
+
+  selector.innerHTML = presets.map((p, i) =>
+    '<button class="compare-chip" data-id="' + p.id + '" onclick="toggleCompare(\'' + p.id + '\')">' + p.name + '</button>'
+  ).join('');
+
+  // Default select first two
+  compareSelections = ['startup', 'enterprise'];
+  updateCompareUI();
+}
+
+function toggleCompare(id) {
+  const idx = compareSelections.indexOf(id);
+  if (idx >= 0) {
+    compareSelections.splice(idx, 1);
+  } else {
+    if (compareSelections.length >= 3) compareSelections.shift();
+    compareSelections.push(id);
+  }
+  updateCompareUI();
+}
+
+function updateCompareUI() {
+  // Update chips
+  const colorClasses = ['','c2','c3'];
+  document.querySelectorAll('.compare-chip').forEach(chip => {
+    const id = chip.dataset.id;
+    const selIdx = compareSelections.indexOf(id);
+    chip.className = 'compare-chip';
+    if (selIdx >= 0) {
+      chip.classList.add('selected');
+      if (colorClasses[selIdx]) chip.classList.add(colorClasses[selIdx]);
+    }
+  });
+
+  // Draw radar
+  drawRadarChart();
+
+  // Build table
+  buildCompareTable();
+}
+
+function drawRadarChart() {
+  const canvas = document.getElementById('radarCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W/2, cy = H/2;
+  const R = Math.min(cx, cy) - 60;
+
+  ctx.clearRect(0, 0, W, H);
+
+  const dims = ['Cost Efficiency', 'Latency', 'Throughput', 'Simplicity', 'Scalability'];
+  const angles = dims.map((_, i) => (i * 2 * Math.PI / dims.length) - Math.PI/2);
+
+  // Draw grid circles
+  for (let level = 2; level <= 10; level += 2) {
+    ctx.beginPath();
+    const r = R * level / 10;
+    for (let i = 0; i <= dims.length; i++) {
+      const a = angles[i % dims.length];
+      const x = cx + Math.cos(a) * r;
+      const y = cy + Math.sin(a) * r;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // Draw axes
+  angles.forEach((a, i) => {
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R);
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.stroke();
+
+    // Labels
+    const lx = cx + Math.cos(a) * (R + 28);
+    const ly = cy + Math.sin(a) * (R + 28);
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '12px "Red Hat Text", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(dims[i], lx, ly);
+  });
+
+  // Draw data polygons
+  const colors = [
+    {fill:'rgba(59,130,246,0.15)', stroke:'#3b82f6'},
+    {fill:'rgba(16,185,129,0.15)', stroke:'#10b981'},
+    {fill:'rgba(245,158,11,0.15)', stroke:'#f59e0b'},
+  ];
+
+  compareSelections.forEach((id, si) => {
+    const preset = STACK_PRESETS[id];
+    if (!preset) return;
+    const scores = preset.scores;
+    const vals = [scores.cost, scores.latency, scores.throughput, scores.complexity, scores.scalability];
+    const c = colors[si] || colors[0];
+
+    ctx.beginPath();
+    vals.forEach((v, i) => {
+      const r = R * v / 10;
+      const x = cx + Math.cos(angles[i]) * r;
+      const y = cy + Math.sin(angles[i]) * r;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.closePath();
+    ctx.fillStyle = c.fill;
+    ctx.fill();
+    ctx.strokeStyle = c.stroke;
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    // Draw dots
+    vals.forEach((v, i) => {
+      const r = R * v / 10;
+      const x = cx + Math.cos(angles[i]) * r;
+      const y = cy + Math.sin(angles[i]) * r;
+      ctx.beginPath();
+      ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.fillStyle = c.stroke;
+      ctx.fill();
+    });
+  });
+
+  // Legend
+  const legendY = H - 20;
+  const totalW = compareSelections.length * 140;
+  let lx = cx - totalW / 2;
+  compareSelections.forEach((id, si) => {
+    const preset = STACK_PRESETS[id];
+    if (!preset) return;
+    const c = colors[si] || colors[0];
+    ctx.fillStyle = c.stroke;
+    ctx.fillRect(lx, legendY - 5, 12, 12);
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '12px "Red Hat Text", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(preset.name, lx + 18, legendY + 3);
+    lx += 140;
+  });
+}
+
+function buildCompareTable() {
+  const wrap = document.getElementById('compareTableWrap');
+  if (compareSelections.length < 2) {
+    wrap.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px">Select at least 2 stacks to compare.</p>';
+    return;
+  }
+
+  const rows = [
+    {label:'Model Size', key: p => p.selections.modelSize.toUpperCase()},
+    {label:'GPUs', key: p => p.gpuSpec},
+    {label:'Est. Monthly Cost', key: p => p.costRange},
+    {label:'Expected TTFT', key: p => p.perf.ttft},
+    {label:'Token Speed', key: p => p.perf.tps},
+    {label:'Throughput', key: p => p.perf.throughput},
+    {label:'Components', key: p => p.components.join(', ')},
+    {label:'Cost Rating', key: p => ratingBar(p.scores.cost)},
+    {label:'Latency Rating', key: p => ratingBar(p.scores.latency)},
+    {label:'Throughput Rating', key: p => ratingBar(p.scores.throughput)},
+    {label:'Simplicity Rating', key: p => ratingBar(p.scores.complexity)},
+    {label:'Scalability Rating', key: p => ratingBar(p.scores.scalability)},
+  ];
+
+  const selected = compareSelections.map(id => STACK_PRESETS[id]).filter(Boolean);
+
+  let html = '<table class="compare-table"><thead><tr><th></th>';
+  selected.forEach(p => { html += '<th>' + p.name + '</th>'; });
+  html += '</tr></thead><tbody>';
+
+  rows.forEach(row => {
+    html += '<tr><td class="col-label">' + row.label + '</td>';
+    selected.forEach(p => { html += '<td>' + row.key(p) + '</td>'; });
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+}
+
+function ratingBar(score) {
+  const pct = score * 10;
+  const color = score >= 7 ? '#10b981' : score >= 4 ? '#f59e0b' : '#ef4444';
+  return '<div style="display:flex;align-items:center;gap:8px">' +
+    '<div style="flex:1;height:6px;background:rgba(255,255,255,0.06);border-radius:3px;max-width:100px">' +
+      '<div style="width:' + pct + '%;height:100%;background:' + color + ';border-radius:3px"></div>' +
+    '</div>' +
+    '<span style="font-family:var(--font-mono);font-size:0.78rem;color:' + color + '">' + score + '/10</span>' +
+  '</div>';
+}
+
+
+/* ====================================================================
+   13. ARCHITECTURE BUILDER
+   ==================================================================== */
+
+function initBuilder() {
+  const toolbar = document.getElementById('builderToolbar');
+  if (!toolbar) return;
+
+  BUILDER_COMPONENTS.forEach(comp => {
+    const el = document.createElement('div');
+    el.className = 'builder-component';
+    el.draggable = false; // We use custom drag
+    el.dataset.compId = comp.id;
+    el.innerHTML = '<div class="bc-icon" style="background:' + comp.bg + ';color:' + comp.color + ';border:1px solid ' + comp.color + '">' + comp.label.charAt(0) + '</div>' + comp.label;
+
+    el.addEventListener('mousedown', (e) => startToolbarDrag(e, comp));
+    el.addEventListener('touchstart', (e) => startToolbarDrag(e.touches[0], comp), {passive:false});
+    toolbar.appendChild(el);
+  });
+
+  const canvas = document.getElementById('builderCanvas');
+  canvas.addEventListener('mousemove', onCanvasMouseMove);
+  canvas.addEventListener('mouseup', onCanvasMouseUp);
+  canvas.addEventListener('touchmove', (e) => { e.preventDefault(); onCanvasMouseMove(e.touches[0]); }, {passive:false});
+  canvas.addEventListener('touchend', (e) => onCanvasMouseUp(e.changedTouches ? e.changedTouches[0] : e));
+
+  document.addEventListener('mousemove', onDocMouseMove);
+  document.addEventListener('mouseup', onDocMouseUp);
+}
+
+function startToolbarDrag(e, comp) {
+  e.preventDefault();
+  const canvas = document.getElementById('builderCanvas');
+  const rect = canvas.getBoundingClientRect();
+
+  // Create a ghost element
+  const ghost = document.createElement('div');
+  ghost.className = 'canvas-node dragging';
+  ghost.style.cssText = 'position:fixed;pointer-events:none;z-index:9999;border-color:' + comp.color + ';background:' + comp.bg;
+  ghost.innerHTML = '<div class="cn-label" style="color:' + comp.color + '">' + comp.label + '</div>';
+  document.body.appendChild(ghost);
+
+  dragState = {
+    type: 'new',
+    comp: comp,
+    ghost: ghost,
+    startX: e.clientX || e.pageX,
+    startY: e.clientY || e.pageY,
+  };
+
+  positionGhost(e);
+}
+
+function positionGhost(e) {
+  if (!dragState || !dragState.ghost) return;
+  const x = e.clientX || e.pageX;
+  const y = e.clientY || e.pageY;
+  dragState.ghost.style.left = (x - 60) + 'px';
+  dragState.ghost.style.top = (y - 20) + 'px';
+}
+
+function onDocMouseMove(e) {
+  if (!dragState) return;
+
+  if (dragState.type === 'new') {
+    positionGhost(e);
+    const canvas = document.getElementById('builderCanvas');
+    const rect = canvas.getBoundingClientRect();
+    const over = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
+    canvas.classList.toggle('drag-over', over);
+  } else if (dragState.type === 'move') {
+    const canvas = document.getElementById('builderCanvas');
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX || e.pageX) - rect.left - dragState.offsetX;
+    const y = (e.clientY || e.pageY) - rect.top - dragState.offsetY;
+    // Snap to 20px grid
+    const sx = Math.round(Math.max(0, Math.min(x, rect.width - 130)) / 20) * 20;
+    const sy = Math.round(Math.max(0, Math.min(y, rect.height - 60)) / 20) * 20;
+    dragState.node.x = sx;
+    dragState.node.y = sy;
+    dragState.el.style.left = sx + 'px';
+    dragState.el.style.top = sy + 'px';
+    drawBuilderConnections();
+  }
+}
+
+function onDocMouseUp(e) {
+  if (!dragState) return;
+
+  if (dragState.type === 'new') {
+    const canvas = document.getElementById('builderCanvas');
+    const rect = canvas.getBoundingClientRect();
+    const cx = (e.clientX || e.pageX);
+    const cy = (e.clientY || e.pageY);
+    const over = cx >= rect.left && cx <= rect.right && cy >= rect.top && cy <= rect.bottom;
+
+    if (dragState.ghost) {
+      dragState.ghost.remove();
+    }
+    canvas.classList.remove('drag-over');
+
+    if (over) {
+      const x = Math.round(Math.max(0, cx - rect.left - 60) / 20) * 20;
+      const y = Math.round(Math.max(0, cy - rect.top - 20) / 20) * 20;
+      addCanvasNode(dragState.comp, x, y);
+    }
+  } else if (dragState.type === 'move') {
+    if (dragState.el) dragState.el.classList.remove('dragging');
+  }
+
+  dragState = null;
+}
+
+function onCanvasMouseMove(e) {}
+function onCanvasMouseUp(e) {}
+
+function addCanvasNode(comp, x, y) {
+  // Check if already placed
+  if (canvasNodes.find(n => n.compId === comp.id)) {
+    showToast(comp.label + ' is already on the canvas');
+    return;
+  }
+
+  const id = canvasNextId++;
+  const node = {id, compId: comp.id, label: comp.label, color: comp.color, bg: comp.bg, x, y, connects: comp.connects};
+  canvasNodes.push(node);
+
+  renderCanvasNode(node);
+  drawBuilderConnections();
+  updateCanvasPlaceholder();
+  generateBuilderConfig();
+}
+
+function renderCanvasNode(node) {
+  const canvas = document.getElementById('builderCanvas');
+  const el = document.createElement('div');
+  el.className = 'canvas-node';
+  el.id = 'cnode-' + node.id;
+  el.style.left = node.x + 'px';
+  el.style.top = node.y + 'px';
+  el.style.borderColor = node.color;
+  el.style.background = node.bg;
+  el.innerHTML =
+    '<div class="cn-label" style="color:' + node.color + '">' + node.label + '</div>' +
+    '<div class="cn-sub">Drag to reposition</div>' +
+    '<button class="cn-remove" onclick="removeCanvasNode(' + node.id + ')">&times;</button>';
+
+  el.addEventListener('mousedown', (e) => {
+    if (e.target.classList.contains('cn-remove')) return;
+    e.preventDefault();
+    el.classList.add('dragging');
+    const rect = el.getBoundingClientRect();
+    dragState = {
+      type: 'move',
+      node: node,
+      el: el,
+      offsetX: e.clientX - rect.left,
+      offsetY: e.clientY - rect.top,
+    };
+  });
+
+  canvas.appendChild(el);
+}
+
+function removeCanvasNode(nodeId) {
+  canvasNodes = canvasNodes.filter(n => n.id !== nodeId);
+  const el = document.getElementById('cnode-' + nodeId);
+  if (el) el.remove();
+  drawBuilderConnections();
+  updateCanvasPlaceholder();
+  generateBuilderConfig();
+}
+
+function updateCanvasPlaceholder() {
+  const ph = document.getElementById('canvasPlaceholder');
+  if (ph) ph.style.display = canvasNodes.length === 0 ? '' : 'none';
+}
+
+function drawBuilderConnections() {
+  const svgEl = document.getElementById('canvasConnections');
+  if (!svgEl) return;
+
+  let lines = '';
+  canvasNodes.forEach(node => {
+    node.connects.forEach(targetId => {
+      const target = canvasNodes.find(n => n.compId === targetId);
+      if (!target) return;
+
+      const x1 = node.x + 60;
+      const y1 = node.y + 25;
+      const x2 = target.x + 60;
+      const y2 = target.y + 25;
+
+      // Check compatibility
+      const compatible = target.connects.includes(node.compId);
+      const color = compatible ? '#10b981' : '#ef4444';
+      const opacity = compatible ? 0.6 : 0.4;
+
+      lines += '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke="' + color + '" stroke-width="2" opacity="' + opacity + '" stroke-dasharray="' + (compatible ? '0' : '6,4') + '"/>';
+    });
+  });
+
+  svgEl.innerHTML = lines;
+}
+
+function generateBuilderConfig() {
+  const output = document.getElementById('builderOutput');
+  if (canvasNodes.length === 0) {
+    output.innerHTML = '';
+    return;
+  }
+
+  const placed = canvasNodes.map(n => n.compId);
+
+  // Check what is missing for a viable stack
+  const warnings = [];
+  const goodNotes = [];
+  if (!placed.includes('vllm')) warnings.push('vLLM is required as the inference engine');
+  if (!placed.includes('gateway')) warnings.push('A Gateway is recommended for external traffic routing');
+  if (!placed.includes('epp')) warnings.push('The EPP (Endpoint Picker Plugin) enables intelligent request routing');
+  if (placed.includes('grafana') && !placed.includes('prometheus')) warnings.push('Grafana requires Prometheus as a data source');
+  if (placed.includes('hpa') && !placed.includes('prometheus')) warnings.push('HPA metrics require Prometheus for custom metric collection');
+
+  if (placed.includes('vllm') && placed.includes('epp') && placed.includes('gateway')) goodNotes.push('Core inference stack is complete');
+  if (placed.includes('prometheus') && placed.includes('grafana')) goodNotes.push('Full observability stack configured');
+  if (placed.includes('hpa') && placed.includes('prometheus')) goodNotes.push('Autoscaling pipeline connected');
+
+  let html = '<div class="arch-panel" style="border-left:3px solid ' + (warnings.length > 0 ? 'var(--orange)' : 'var(--green)') + '">';
+  html += '<h3><span class="dot" style="background:' + (warnings.length > 0 ? 'var(--orange)' : 'var(--green)') + '"></span> Compatibility Check</h3>';
+  html += '<div style="display:grid;gap:8px">';
+
+  goodNotes.forEach(note => {
+    html += '<div style="padding:10px 14px;background:var(--green-bg);border-radius:8px;font-size:0.85rem;color:var(--green);border-left:3px solid var(--green)">' + note + '</div>';
+  });
+  warnings.forEach(warn => {
+    html += '<div style="padding:10px 14px;background:var(--orange-bg);border-radius:8px;font-size:0.85rem;color:var(--orange);border-left:3px solid var(--orange)">' + warn + '</div>';
+  });
+
+  html += '</div></div>';
+  output.innerHTML = html;
+}
+
+
+/* ====================================================================
+   14. STACK GALLERY
+   ==================================================================== */
+
+function initGallery() {
+  const grid = document.getElementById('galleryGrid');
+  if (!grid) return;
+
+  let html = '';
+  Object.values(STACK_PRESETS).forEach(preset => {
+    html += '<div class="gallery-card">';
+    html += '<span class="gc-badge ' + preset.badge + '">' + preset.badge + '</span>';
+    html += '<div class="gc-title">' + preset.name + '</div>';
+    html += '<div class="gc-desc">' + preset.desc + '</div>';
+
+    html += '<div class="gc-specs">';
+    html += '<div class="gc-spec"><div class="spec-label">Est. Cost</div><div class="spec-value">' + preset.costRange + '</div></div>';
+    html += '<div class="gc-spec"><div class="spec-label">GPUs</div><div class="spec-value">' + preset.gpuSpec + '</div></div>';
+    html += '<div class="gc-spec"><div class="spec-label">TTFT</div><div class="spec-value">' + preset.perf.ttft + '</div></div>';
+    html += '<div class="gc-spec"><div class="spec-label">Throughput</div><div class="spec-value">' + preset.perf.throughput + '</div></div>';
+    html += '</div>';
+
+    html += '<div class="gc-components">';
+    preset.components.forEach(c => {
+      html += '<span class="gc-comp-tag">' + c + '</span>';
+    });
+    html += '</div>';
+
+    html += '<button class="btn btn-primary btn-sm" onclick="loadPresetIntoWizard(\'' + preset.id + '\')">Load This Stack</button>';
+    html += '</div>';
+  });
+
+  grid.innerHTML = html;
+}
+
 </script>
 </body>
 </html>

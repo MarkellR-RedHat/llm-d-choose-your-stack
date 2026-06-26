@@ -3,242 +3,1144 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Choose Your Own Inference Stack: A Decision Framework for Production LLM Serving</title>
+<title>Choose Your Own Inference Stack: The Complete Decision Framework for Production LLM Serving</title>
+<meta name="description" content="A comprehensive technical guide to building production LLM inference stacks with llm-d. Covers component selection, stack patterns, migration paths, and comparison with alternative platforms.">
+<meta name="author" content="Markell Rawls">
 <link rel="icon" type="image/png" href="https://llm-d.ai/img/llm-d-icon.png">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;700;900&family=Red+Hat+Text:wght@400;500;700&family=Red+Hat+Mono:wght@400;500&display=swap');
-  :root { --purple: #9b4d9b; --purple-dark: #7f317f; --purple-light: #f3e8f3; --rh-red: #EE0000; --rh-red-dark: #CC0000; --rh-black: #151515; --rh-gray-dark: #3C3F42; --rh-gray-mid: #6A6E73; --rh-gray-light: #F5F5F5; --rh-blue: #0066CC; --code-bg: #1E1E2E; --code-text: #CDD6F4; }
+  @import url('https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;700;900&family=Red+Hat+Text:wght@400;500;700&family=Red+Hat+Mono:wght@400;500;700&display=swap');
+
+  :root {
+    --bg-primary: #0a0e17;
+    --bg-secondary: #111827;
+    --bg-card: rgba(17, 24, 39, 0.7);
+    --bg-code: #1e1e2e;
+    --text-primary: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --text-heading: #ffffff;
+    --accent-blue: #3b82f6;
+    --accent-blue-dim: rgba(59, 130, 246, 0.15);
+    --accent-blue-border: rgba(59, 130, 246, 0.3);
+    --accent-purple: #8b5cf6;
+    --accent-purple-dim: rgba(139, 92, 246, 0.12);
+    --accent-purple-border: rgba(139, 92, 246, 0.3);
+    --accent-green: #10b981;
+    --accent-green-dim: rgba(16, 185, 129, 0.12);
+    --accent-amber: #f59e0b;
+    --accent-amber-dim: rgba(245, 158, 11, 0.12);
+    --accent-red: #ef4444;
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-card: rgba(255, 255, 255, 0.08);
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.08);
+  }
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Red Hat Text', sans-serif; color: var(--rh-black); line-height: 1.7; font-size: 15px; background: #F9F9F9; }
-  .container { max-width: 860px; margin: 0 auto; padding: 40px 20px; }
-  .submission-header { background: linear-gradient(135deg, var(--purple-dark), var(--purple)); color: white; padding: 32px 40px; border-radius: 12px 12px 0 0; }
-  .submission-header h1 { font-family: 'Red Hat Display', sans-serif; font-weight: 900; font-size: 1.6em; margin-bottom: 4px; }
-  .submission-header .subtitle { opacity: 0.85; font-size: 0.95em; }
-  .meta-card { background: white; border: 1px solid #E0E0E0; border-top: none; border-radius: 0 0 12px 12px; overflow: hidden; margin-bottom: 32px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-  .meta-row { display: flex; border-bottom: 1px solid #EFEFEF; }
-  .meta-row:last-child { border-bottom: none; }
-  .meta-label { flex: 0 0 220px; padding: 16px 20px; background: #FAFAFA; font-weight: 700; font-size: 0.88em; color: var(--rh-gray-dark); border-right: 1px solid #EFEFEF; }
-  .meta-value { flex: 1; padding: 16px 20px; }
-  .meta-value a { color: var(--rh-blue); text-decoration: none; }
-  .badge { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 0.82em; font-weight: 600; margin-right: 6px; }
-  .badge-green { background: #E6F9E6; color: #1A7A1A; }
-  .badge-blue { background: #E6F0FF; color: #004080; }
-  .badge-purple { background: var(--purple-light); color: var(--purple-dark); }
-  .badge-red { background: #FFE6E6; color: #CC0000; }
-  .article { background: white; border: 1px solid #E0E0E0; border-radius: 12px; padding: 48px 40px; margin-bottom: 32px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-  .article h2 { font-family: 'Red Hat Display', sans-serif; font-weight: 800; font-size: 1.4em; color: var(--rh-black); margin: 2em 0 0.6em; padding-bottom: 8px; border-bottom: 3px solid var(--purple); }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Red Hat Text', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--text-primary);
+    line-height: 1.8;
+    font-size: 16px;
+    background: var(--bg-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ── Header ── */
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10, 14, 23, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 14px 0;
+  }
+
+  .header-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+  }
+
+  .header-brand-text {
+    font-family: 'Red Hat Display', sans-serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--text-heading);
+    letter-spacing: -0.01em;
+  }
+
+  .header-brand-text span {
+    color: var(--accent-blue);
+  }
+
+  .cncf-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    font-family: 'Red Hat Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--accent-blue);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+
+  .header-nav {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .header-nav a {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.2s;
+    white-space: nowrap;
+  }
+
+  .header-nav a:hover { color: var(--accent-blue); }
+
+  /* ── Container ── */
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    padding: 80px 0 48px;
+    border-bottom: 1px solid var(--border-subtle);
+    margin-bottom: 48px;
+  }
+
+  .hero-eyebrow {
+    font-family: 'Red Hat Mono', monospace;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--accent-blue);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 16px;
+  }
+
+  .hero h1 {
+    font-family: 'Red Hat Display', sans-serif;
+    font-weight: 900;
+    font-size: clamp(2rem, 5vw, 2.8rem);
+    color: var(--text-heading);
+    line-height: 1.15;
+    margin-bottom: 20px;
+    letter-spacing: -0.02em;
+  }
+
+  .hero-subtitle {
+    font-size: 1.15rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    max-width: 680px;
+    margin-bottom: 28px;
+  }
+
+  .hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 20px;
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+  }
+
+  .hero-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .hero-meta-item .dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--text-secondary);
+  }
+
+  .meta-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    font-family: 'Red Hat Mono', monospace;
+    background: var(--accent-blue-dim);
+    color: var(--accent-blue);
+    border: 1px solid var(--accent-blue-border);
+  }
+
+  /* ── Table of Contents ── */
+  .toc {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 56px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .toc-title {
+    font-family: 'Red Hat Display', sans-serif;
+    font-weight: 700;
+    font-size: 0.92rem;
+    color: var(--text-heading);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 16px;
+  }
+
+  .toc ol {
+    list-style: none;
+    counter-reset: toc-counter;
+  }
+
+  .toc ol li {
+    counter-increment: toc-counter;
+    margin-bottom: 8px;
+  }
+
+  .toc ol li::before {
+    content: counter(toc-counter) ".";
+    font-family: 'Red Hat Mono', monospace;
+    font-weight: 500;
+    color: var(--accent-blue);
+    margin-right: 10px;
+    font-size: 0.88rem;
+  }
+
+  .toc a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: color 0.2s;
+  }
+
+  .toc a:hover { color: var(--accent-blue); }
+
+  /* ── Article ── */
+  .article {
+    padding-bottom: 60px;
+  }
+
+  .article h2 {
+    font-family: 'Red Hat Display', sans-serif;
+    font-weight: 800;
+    font-size: 1.6rem;
+    color: var(--text-heading);
+    margin: 3em 0 0.8em;
+    padding-top: 20px;
+    letter-spacing: -0.01em;
+    position: relative;
+  }
+
+  .article h2::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 48px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+    border-radius: 2px;
+  }
+
   .article h2:first-child { margin-top: 0; }
-  .article h3 { font-family: 'Red Hat Display', sans-serif; font-weight: 700; font-size: 1.1em; margin: 1.5em 0 0.5em; }
-  .article p { margin: 0 0 1.2em; }
-  .article ul, .article ol { margin: 0 0 1.2em 1.5em; }
-  .article li { margin-bottom: 0.4em; }
-  .article strong { color: var(--rh-black); }
-  .article code { font-family: 'Red Hat Mono', monospace; background: #F0F0F0; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
-  .article a { color: var(--rh-blue); text-decoration: none; }
-  .article a:hover { text-decoration: underline; }
-  .callout { background: #FDF5FD; border-left: 4px solid var(--purple); padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 1.5em 0; font-size: 0.92em; }
-  .callout-amber { background: #FFF8E1; border-left-color: #FFC107; }
-  .decision-table { width: 100%; border-collapse: collapse; margin: 1.5em 0; font-size: 0.88em; }
-  .decision-table th { font-family: 'Red Hat Display', sans-serif; font-weight: 700; text-align: left; padding: 10px 14px; background: var(--purple); color: white; }
-  .decision-table th:first-child { border-radius: 8px 0 0 0; }
-  .decision-table th:last-child { border-radius: 0 8px 0 0; }
-  .decision-table td { padding: 10px 14px; border-bottom: 1px solid #EFEFEF; vertical-align: top; }
-  .decision-table tr:last-child td:first-child { border-radius: 0 0 0 8px; }
-  .decision-table tr:last-child td:last-child { border-radius: 0 0 8px 0; }
-  .decision-table tr:nth-child(even) { background: #FAFAFA; }
-  .decision-table tr:hover { background: var(--purple-light); }
-  .footer-note { text-align: center; color: var(--rh-gray-mid); font-size: 0.85em; padding: 16px 0 8px; }
-  .hub-link { text-align: center; padding: 24px 0; }
-  .hub-link a { font-family: 'Red Hat Display', sans-serif; font-size: 0.85rem; font-weight: 600; text-decoration: none; margin: 0 12px; }
-  @media (max-width: 700px) { .meta-row { flex-direction: column; } .meta-label { flex: none; border-right: none; border-bottom: 1px solid #EFEFEF; } .article { padding: 28px 20px; } .submission-header { padding: 24px 20px; } .decision-table { font-size: 0.8em; } .decision-table th, .decision-table td { padding: 8px 10px; } }
+
+  .article h3 {
+    font-family: 'Red Hat Display', sans-serif;
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: var(--text-heading);
+    margin: 2em 0 0.6em;
+  }
+
+  .article h4 {
+    font-family: 'Red Hat Display', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--accent-blue);
+    margin: 1.5em 0 0.5em;
+  }
+
+  .article p {
+    margin: 0 0 1.4em;
+    color: var(--text-primary);
+  }
+
+  .article ul, .article ol {
+    margin: 0 0 1.4em 1.6em;
+  }
+
+  .article li {
+    margin-bottom: 0.5em;
+  }
+
+  .article strong {
+    color: var(--text-heading);
+    font-weight: 700;
+  }
+
+  .article code {
+    font-family: 'Red Hat Mono', monospace;
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--accent-blue);
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 0.88em;
+    border: 1px solid rgba(59, 130, 246, 0.15);
+  }
+
+  .article a {
+    color: var(--accent-blue);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+    transition: border-color 0.2s;
+  }
+
+  .article a:hover {
+    border-bottom-color: var(--accent-blue);
+  }
+
+  /* ── Callout boxes ── */
+  .callout {
+    background: var(--accent-blue-dim);
+    border-left: 4px solid var(--accent-blue);
+    padding: 20px 24px;
+    border-radius: 0 10px 10px 0;
+    margin: 1.8em 0;
+    font-size: 0.94rem;
+    line-height: 1.7;
+  }
+
+  .callout strong {
+    color: var(--accent-blue);
+    display: block;
+    margin-bottom: 4px;
+    font-size: 0.88rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .callout-purple {
+    background: var(--accent-purple-dim);
+    border-left-color: var(--accent-purple);
+  }
+
+  .callout-purple strong {
+    color: var(--accent-purple);
+  }
+
+  .callout-amber {
+    background: var(--accent-amber-dim);
+    border-left-color: var(--accent-amber);
+  }
+
+  .callout-amber strong {
+    color: var(--accent-amber);
+  }
+
+  .callout-green {
+    background: var(--accent-green-dim);
+    border-left-color: var(--accent-green);
+  }
+
+  .callout-green strong {
+    color: var(--accent-green);
+  }
+
+  /* ── Code blocks ── */
+  .code-block {
+    background: var(--bg-code);
+    border: 1px solid var(--border-card);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 1.5em 0;
+    overflow-x: auto;
+    position: relative;
+  }
+
+  .code-block-label {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 4px 12px;
+    font-family: 'Red Hat Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 0 10px 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .code-block pre {
+    font-family: 'Red Hat Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: #cdd6f4;
+    white-space: pre;
+    margin: 0;
+  }
+
+  /* YAML syntax highlighting via CSS */
+  .yaml-key { color: #89b4fa; }
+  .yaml-val { color: #a6e3a1; }
+  .yaml-comment { color: #6c7086; font-style: italic; }
+  .yaml-num { color: #fab387; }
+  .yaml-bool { color: #f38ba8; }
+
+  /* ── Tables ── */
+  .comparison-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 1.8em 0;
+    font-size: 0.88rem;
+    border: 1px solid var(--border-card);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .comparison-table thead th {
+    font-family: 'Red Hat Display', sans-serif;
+    font-weight: 700;
+    text-align: left;
+    padding: 14px 18px;
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--accent-blue);
+    border-bottom: 1px solid var(--border-card);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .comparison-table tbody td {
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--border-subtle);
+    vertical-align: top;
+    color: var(--text-primary);
+  }
+
+  .comparison-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .comparison-table tbody tr:hover {
+    background: rgba(59, 130, 246, 0.04);
+  }
+
+  .comparison-table tbody td:first-child {
+    font-weight: 600;
+    color: var(--text-heading);
+    white-space: nowrap;
+  }
+
+  /* ── Section dividers ── */
+  .section-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-blue-border), transparent);
+    margin: 3em 0;
+    border: none;
+  }
+
+  /* ── Checklist ── */
+  .checklist {
+    list-style: none;
+    margin: 1.5em 0;
+    padding: 0;
+  }
+
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .checklist li:last-child {
+    border-bottom: none;
+  }
+
+  .checklist-num {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: var(--accent-blue-dim);
+    border: 1px solid var(--accent-blue-border);
+    font-family: 'Red Hat Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--accent-blue);
+  }
+
+  .checklist-content {
+    flex: 1;
+    padding-top: 3px;
+  }
+
+  .checklist-content strong {
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .checklist-content em {
+    color: var(--text-secondary);
+    font-style: normal;
+    font-size: 0.9em;
+  }
+
+  /* ── Glass cards ── */
+  .glass-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin: 1.5em 0;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .glass-card h4 {
+    margin-top: 0;
+  }
+
+  /* ── Footer ── */
+  .site-footer {
+    border-top: 1px solid var(--border-subtle);
+    padding: 40px 0;
+    margin-top: 20px;
+    text-align: center;
+  }
+
+  .footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 20px;
+  }
+
+  .footer-links a {
+    font-family: 'Red Hat Display', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover { color: var(--accent-blue); }
+
+  .footer-credit {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    opacity: 0.7;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .hero { padding: 48px 0 32px; }
+    .hero h1 { font-size: 1.7rem; }
+    .toc { padding: 20px 20px; }
+    .article h2 { font-size: 1.35rem; }
+    .code-block { padding: 16px 16px; }
+    .comparison-table { font-size: 0.8rem; }
+    .comparison-table thead th,
+    .comparison-table tbody td { padding: 10px 12px; }
+    .header-nav { gap: 12px; }
+    .header-nav a { font-size: 0.8rem; }
+    .cncf-badge { font-size: 0.62rem; padding: 3px 7px; }
+  }
+
+  @media (max-width: 520px) {
+    .header-inner { flex-wrap: wrap; }
+    .hero-meta { gap: 12px; }
+    .footer-links { flex-direction: column; align-items: center; gap: 12px; }
+  }
 </style>
 </head>
 <body>
+
+<!-- ════════════════════ HEADER ════════════════════ -->
+<header class="site-header">
+  <div class="header-inner">
+    <a class="header-brand" href="https://markellr-redhat.github.io/llm-d-content-hub/">
+      <img src="https://llm-d.ai/img/llm-d-icon.png" alt="llm-d" width="28" height="28">
+      <span class="header-brand-text"><span>llm-d</span> Content Hub</span>
+    </a>
+    <span class="cncf-badge">CNCF Sandbox</span>
+    <nav class="header-nav">
+      <a href="https://markellr-redhat.github.io/llm-d-content-hub/">Content Hub</a>
+      <a href="../">Interactive Tool</a>
+      <a href="https://github.com/llm-d/llm-d" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ════════════════════ HERO ════════════════════ -->
 <div class="container">
+<section class="hero">
+  <div class="hero-eyebrow">Decision Framework &middot; llm-d</div>
+  <h1>Choose Your Own Inference Stack: The Complete Decision Framework for Production LLM Serving</h1>
+  <p class="hero-subtitle">Deploying an LLM to production is not one decision. It is dozens of interacting decisions that compound under load. This guide walks through every dimension, component, and trade-off you need to navigate to build an inference stack that survives contact with real traffic.</p>
+  <div class="hero-meta">
+    <span class="hero-meta-item">Markell Rawls</span>
+    <span class="hero-meta-item"><span class="dot"></span></span>
+    <span class="hero-meta-item">20 min read</span>
+    <span class="hero-meta-item"><span class="dot"></span></span>
+    <span class="hero-meta-item">~3,800 words</span>
+    <span class="hero-meta-item"><span class="dot"></span></span>
+    <span class="meta-tag">llm-d</span>
+  </div>
+</section>
 
-<div class="submission-header">
-  <h1>Choose Your Own Inference Stack</h1>
-  <div class="subtitle">A decision framework for the five dimensions that define production LLM serving with llm-d</div>
+<!-- ════════════════════ TABLE OF CONTENTS ════════════════════ -->
+<div class="toc">
+  <div class="toc-title">Contents</div>
+  <ol>
+    <li><a href="#introduction">Introduction: The Problem with "Just Deploy It"</a></li>
+    <li><a href="#decision-framework">The Decision Framework: Five Dimensions That Define Your Stack</a></li>
+    <li><a href="#component-deep-dives">Component Deep Dives: What You Need and When</a></li>
+    <li><a href="#stack-patterns">Stack Patterns by Use Case</a></li>
+    <li><a href="#complexity-performance">The Complexity-Performance Tradeoff</a></li>
+    <li><a href="#migration-paths">Migration Paths: How to Evolve Your Stack</a></li>
+    <li><a href="#comparison">Comparison with Alternative Stacks</a></li>
+    <li><a href="#decision-checklist">Decision Checklist for Enterprises</a></li>
+    <li><a href="#conclusion">Conclusion</a></li>
+  </ol>
 </div>
 
-<div class="meta-card">
-  <div class="meta-row"><div class="meta-label">Author</div><div class="meta-value">Markell Rawls, Developer Advocate, Red Hat</div></div>
-  <div class="meta-row"><div class="meta-label">Status</div><div class="meta-value"><span class="badge badge-green">Published</span></div></div>
-  <div class="meta-row"><div class="meta-label">Word Count</div><div class="meta-value">~1,800</div></div>
-  <div class="meta-row"><div class="meta-label">Tags</div><div class="meta-value"><span class="badge badge-purple">llm-d</span><span class="badge badge-blue">Architecture</span><span class="badge badge-blue">Decision Framework</span><span class="badge badge-blue">Production</span></div></div>
-  <div class="meta-row"><div class="meta-label">Companion</div><div class="meta-value"><a href="https://markellr-redhat.github.io/llm-d-choose-your-stack/">Interactive: Choose Your Own Inference Stack</a></div></div>
-</div>
+<!-- ════════════════════ ARTICLE ════════════════════ -->
+<article class="article">
 
-<div class="article">
+<!-- ───────── 1. Introduction ───────── -->
+<h2 id="introduction">1. Introduction: The Problem with "Just Deploy It"</h2>
 
-<h2>The Architecture Decisions You Cannot Undo Later</h2>
+<p>Every team that deploys a large language model to production goes through the same arc. The proof-of-concept works. A single vLLM instance on a rented GPU handles the demo traffic. Leadership is impressed. Then come the questions that unravel everything: What happens when traffic doubles next Tuesday? How do we give the fraud team their own fine-tuned adapter without doubling GPU spend? Why does time to first token spike when the support team's shift starts? Why is our GPU utilization at 30% even though users are complaining about latency?</p>
 
-<p>Deploying a large language model to production is not one decision &mdash; it is five, and they interact in ways that punish you at scale if you get them wrong early.</p>
+<p>The gap between "vLLM can serve this model" and "we have a production inference platform" is enormous. vLLM is an inference engine, and it is an excellent one. But an engine is not a car. You still need routing that understands where your KV cache lives. You need autoscaling that responds to inference-specific metrics, not generic CPU utilization. You need monitoring that tracks time to first token and tokens per second, not just HTTP 200 rates. You need a multi-tenancy story that does not involve running separate clusters for every team that wants to serve a LoRA adapter.</p>
 
-<p>Model size determines your GPU topology. Traffic pattern determines your routing strategy. Hardware choice constrains your model options. Latency requirements dictate whether you can batch aggressively or need to disaggregate phases. Multi-tenancy determines whether your serving layer is a shared bus or a set of isolated lanes.</p>
+<p>This is the problem that <a href="https://github.com/llm-d/llm-d">llm-d</a> solves. It is a CNCF Sandbox project that assembles the complete inference platform from Kubernetes-native components: vLLM for inference, the Endpoint Picker Plugin (EPP) for cache-aware routing, Gateway API for traffic management, KServe for model lifecycle, and Prometheus for observability. Each component is optional. You adopt what you need and skip what you do not.</p>
 
-<p>Most teams discover these dependencies the hard way: a proof-of-concept works on a single A100, but falls apart when traffic spikes, latency SLAs tighten, or the second team shows up wanting to share the cluster. The decisions compound. Reversing them under production load is expensive.</p>
+<p>But "which components do you need?" is exactly the question that trips teams up. The answer depends on your model size, your latency targets, your traffic shape, your GPU budget, and your deployment environment. These five dimensions interact in ways that are not obvious until you have been burned by them. This guide is the field manual for navigating those decisions before your SLA is on fire.</p>
 
-<p>This post walks through each of the five decision dimensions, explains what happens when you get them wrong, and provides a concrete framework for making these choices up front &mdash; using <a href="https://github.com/llm-d/llm-d">llm-d</a>, the CNCF Sandbox project for distributed LLM inference, as the reference architecture.</p>
+<p>The companion <a href="../">Choose Your Own Inference Stack</a> interactive tool lets you explore these decisions dynamically and generates a tailored architecture recommendation. This post provides the depth behind those recommendations.</p>
 
-<h2>1. Model Size: The Decision That Constrains Everything Else</h2>
+<hr class="section-divider">
 
-<p>Model size is the load-bearing wall of your inference stack. Every other decision &mdash; GPU selection, parallelism strategy, batch size, routing approach &mdash; flows downstream from how many parameters you need to serve.</p>
+<!-- ───────── 2. Decision Framework ───────── -->
+<h2 id="decision-framework">2. The Decision Framework: Five Dimensions That Define Your Stack</h2>
 
-<h3>The tensor parallelism threshold</h3>
-<p>Models under roughly 30 billion parameters can typically fit on a single GPU with enough headroom for KV cache. Once you cross that line, you need tensor parallelism: sharding the model across multiple GPUs, synchronizing at every layer. This is not a linear cost increase. Inter-GPU communication (NVLink or PCIe) becomes a bottleneck, and your minimum deployment unit jumps from one GPU to two, four, or eight.</p>
+<p>The most common mistake in inference architecture is treating component selection as a shopping list. Teams pick components based on feature comparison charts and end up with a stack that is technically capable of everything but optimized for nothing. The right approach is to start with your constraints and work backward to components.</p>
 
-<p>A 70B model in FP16 requires approximately 140 GB of VRAM just for weights &mdash; before any KV cache. On 80 GB A100s, that means at least two GPUs with tensor parallelism of 2. On H100s with the same memory, the math is the same, but the interconnect is faster. On MI300X with 192 GB HBM3, you can fit the model on a single accelerator, which changes your routing and scaling story entirely.</p>
+<p>There are five dimensions that matter:</p>
 
-<h3>Quantization trade-offs</h3>
-<p>Quantization (FP8, GPTQ, AWQ) reduces memory footprint and can improve throughput, but it is not free. Quality degradation is workload-dependent: summarization tasks may tolerate INT4 quantization with minimal loss, while code generation and reasoning tasks often show measurable regression. The right answer depends on your accuracy requirements and your willingness to benchmark.</p>
+<p><strong>Model size</strong> is the load-bearing wall. A 7B parameter model on a single GPU is a fundamentally different operational problem than a 70B model sharded across four GPUs. Model size determines your GPU topology, your minimum deployment unit, your scaling granularity, and your cost floor. Everything else is downstream of this choice.</p>
+
+<p><strong>Latency SLO</strong> determines your architecture's shape. If your p95 time to first token target is 2 seconds, you can use a unified serving pool and batch aggressively. If it is 200 milliseconds, you likely need prefill/decode disaggregation and prefix caching. The difference between these two architectures is not incremental; it is structural.</p>
+
+<p><strong>Traffic pattern</strong> determines your routing strategy. Steady batch traffic wants maximum throughput. Bursty interactive traffic wants responsive autoscaling. Agentic multi-turn traffic wants prefix-cache-aware routing that keeps sessions sticky to the pod holding their KV cache. A routing layer that is unaware of these patterns leaves 30-60% of your potential performance on the table.</p>
+
+<p><strong>GPU budget</strong> is the constraint that makes everything else real. There is always a theoretically better architecture that uses more GPUs. The practical question is: given N GPUs, what architecture extracts the most value? This dimension also determines how aggressively you can pursue redundancy, whether you can afford dedicated prefill and decode pools, and whether you need to share base model replicas across multiple tenants via LoRA adapters.</p>
+
+<p><strong>Deployment environment</strong> determines your operational ceiling. An on-premise Kubernetes cluster with a three-person SRE team has different constraints than a managed cloud environment with auto-provisioned node pools. The right architecture is one that your team can actually operate, monitor, and debug at 2 AM when something breaks.</p>
 
 <div class="callout">
-<strong>Rule of thumb:</strong> If your model fits on a single GPU without quantization, start there. If it requires tensor parallelism, quantize first and measure quality loss before adding GPUs. The operational complexity of multi-GPU serving is real, and avoiding it is worth a few percentage points on a benchmark.
+<strong>Key insight</strong>
+These dimensions are not independent sliders. Model size constrains GPU choice. Traffic pattern determines whether cache-aware routing delivers value. Latency targets determine whether disaggregation is worth the operational complexity. The danger is optimizing one dimension while ignoring its interactions with the others. A 70B model with aggressive latency targets and a small GPU budget is an unsolvable equation &mdash; something has to give.
 </div>
 
-<p>In llm-d, the vLLM serving engine handles quantized model loading natively. Your Endpoint Picker Plugin (EPP) routes identically regardless of whether the backend is running FP16 or FP8 &mdash; the routing layer does not need to know about quantization.</p>
+<hr class="section-divider">
 
-<h2>2. Traffic Pattern: Bursty, Steady, or Agentic</h2>
+<!-- ───────── 3. Component Deep Dives ───────── -->
+<h2 id="component-deep-dives">3. Component Deep Dives: What You Need and When</h2>
 
-<p>Traffic pattern determines whether your routing is doing load balancing or cache optimization &mdash; and these are fundamentally different problems.</p>
+<p>llm-d is a composable platform, not a monolith. Each component addresses a specific operational need. Here is when you need each one and when you do not.</p>
 
-<h3>Steady throughput</h3>
-<p>Batch processing workloads &mdash; document summarization pipelines, classification jobs, offline embedding generation &mdash; produce predictable, steady traffic. Here, GPU utilization is the primary optimization target. Pack requests into batches, maximize throughput per dollar, and use simple load-aware routing to keep replicas evenly utilized.</p>
+<h3>vLLM Engine</h3>
 
-<h3>Bursty, user-facing traffic</h3>
-<p>Interactive applications spike. A customer-facing chatbot might see 10x traffic variation within an hour. Bursty traffic requires autoscaling, which means your routing layer must handle a changing set of backend replicas gracefully. Round-robin breaks when pods are mid-startup and have cold caches. Load-aware routing helps, but it still ignores the most expensive operation: redundant prefill computation.</p>
+<p><strong>When you need it:</strong> Always. This is the inference runtime. vLLM handles model loading, continuous batching, PagedAttention for KV cache management, tensor parallelism for multi-GPU serving, and quantized model execution. There is no llm-d deployment without vLLM.</p>
 
-<h3>Agentic and multi-turn</h3>
-<p>This is where the decision gets interesting. Agentic workflows &mdash; tool-calling chains, multi-step reasoning, retrieval-augmented generation &mdash; produce requests that share long prompt prefixes. A multi-turn conversation appends each new turn to the same growing context. An agent calling tools repeatedly sends the same system prompt and prior tool results with every request.</p>
+<p>The key configuration decisions are tensor parallelism degree (how many GPUs per replica), prefix caching (enabled by default in recent versions, critical for multi-turn workloads), and quantization format (FP16, FP8, AWQ, GPTQ). These choices are largely determined by your model size and GPU hardware, and they are set at deployment time in your model serving configuration.</p>
 
-<div class="callout">
-<strong>The prefix caching opportunity:</strong> In agentic workloads, 60-90% of each request&rsquo;s prompt is identical to the previous request in the same session. Without prefix-cache-aware routing, every request re-computes that prefill from scratch. With it, the KV cache is already warm on the target pod, and time to first token drops by an order of magnitude.
+<h3>Endpoint Picker Plugin (EPP)</h3>
+
+<p><strong>When you need it:</strong> As soon as you have more than one replica. The EPP is the routing brain. It maintains a real-time view of each vLLM replica's state: queue depth, KV cache contents, loaded LoRA adapters, and available capacity. When a request arrives, the EPP scores each replica based on cache hit potential, current load, and adapter availability, then routes to the optimal target.</p>
+
+<p><strong>When you can skip it:</strong> If you are running a single replica, there is no routing decision to make. But the moment you scale to two or more replicas, round-robin or random routing wastes prefill computation. The EPP is typically the single highest-impact component you can add after the base vLLM engine.</p>
+
+<h3>Gateway API</h3>
+
+<p><strong>When you need it:</strong> When external traffic reaches your inference stack. The Gateway API provides standard Kubernetes ingress with inference-aware extensions: rate limiting per model, request prioritization, traffic splitting for canary deployments, and TLS termination. It integrates with the EPP so that routing decisions are made with full awareness of model-serving state.</p>
+
+<p><strong>When you can skip it:</strong> Internal-only workloads where services call the inference endpoint directly via ClusterIP can defer this. But anything exposed to end users or partner APIs needs a proper gateway.</p>
+
+<h3>KServe / InferencePool</h3>
+
+<p><strong>When you need it:</strong> For managed model lifecycle. KServe handles model loading from object storage, health checking, readiness probing, rolling updates, and canary rollouts. InferencePool defines a logical group of model-serving pods that the EPP treats as a routing target. Together, they provide the operational layer that turns "a container running vLLM" into "a managed model endpoint."</p>
+
+<h3>Prometheus + Grafana</h3>
+
+<p><strong>When you need it:</strong> In production. Always. vLLM exports a rich set of metrics: time to first token (TTFT), inter-token latency, tokens per second (TPS), queue depth, KV cache utilization, prefix cache hit rate, GPU memory usage, and batch size distribution. Without these metrics, you are operating blind. You cannot tune what you cannot measure, and inference workloads have enough moving parts that intuition alone will mislead you.</p>
+
+<div class="callout-purple callout">
+<strong>Metrics that matter most</strong>
+Start with four dashboards: (1) TTFT by percentile, which tells you if users are waiting too long for the first token; (2) KV cache hit rate, which tells you if your routing is working; (3) GPU utilization versus queue depth, which tells you if you are compute-bound or scheduling-bound; and (4) tokens per second per replica, which tells you if any replica is degraded.
 </div>
 
-<p>llm-d&rsquo;s EPP tracks KV cache state across all vLLM replicas in real time. When a new request arrives, it identifies which pod holds the longest matching cached prefix and routes there &mdash; balanced against current load. This is not hash-based guessing. It is actual cache-state-aware routing, and it is the reason llm-d exists.</p>
+<h3>HPA Autoscaler</h3>
 
-<h2>3. GPU Hardware: Matching Iron to Workload</h2>
+<p><strong>When you need it:</strong> For variable traffic. The Horizontal Pod Autoscaler scales your replica count based on custom metrics from vLLM, typically queue depth or pending request count. Scaling on CPU utilization is meaningless for GPU inference. You need to scale on inference-specific signals: when requests are queuing, add capacity; when GPUs are idle, release them.</p>
 
-<p>GPU selection is often treated as a procurement decision, separate from inference architecture. That is a mistake. The GPU you run on changes your parallelism strategy, your maximum batch size, your memory budget for KV cache, and your cost per token.</p>
+<p><strong>When you can skip it:</strong> Steady batch workloads with predictable traffic can use a fixed replica count. But any user-facing workload with variable traffic patterns needs autoscaling to avoid either wasting GPU hours or dropping requests.</p>
 
-<h3>The practical landscape</h3>
-<ul>
-  <li><strong>NVIDIA A100 (80 GB):</strong> The workhorse. Wide ecosystem support, mature tooling, readily available. Limited by HBM2e bandwidth for decode-heavy workloads.</li>
-  <li><strong>NVIDIA H100 (80 GB):</strong> Higher memory bandwidth, FP8 Transformer Engine, faster NVLink. Better throughput per GPU, but the memory capacity is the same as A100 &mdash; you still need tensor parallelism for 70B+ models.</li>
-  <li><strong>AMD MI300X (192 GB):</strong> The memory story is different. 192 GB of HBM3 means a 70B model fits on a single accelerator. This eliminates tensor parallelism overhead entirely for many production models. The trade-off is a smaller software ecosystem and less mature tooling.</li>
-</ul>
+<h3>Prefill/Decode Disaggregation</h3>
 
-<h3>Mixed fleet considerations</h3>
-<p>Real clusters are rarely homogeneous. You may have A100 nodes from an earlier procurement cycle and H100 nodes from a recent expansion. llm-d runs on Kubernetes, which means you can use node selectors and topology-aware scheduling to place model replicas appropriately. The EPP routes based on cache state and load, not GPU type &mdash; so a mixed fleet works as long as each replica can serve the model.</p>
+<p><strong>When you need it:</strong> When you have aggressive latency targets on long-context inputs. Prefill (processing the input prompt) is compute-bound. Decode (generating output tokens) is memory-bandwidth-bound. In a unified pool, long prefill operations block decode operations, causing latency spikes for all concurrent requests. Disaggregation separates these phases onto dedicated GPU pools so that neither blocks the other.</p>
 
-<p>The Gateway API integration in llm-d means traffic management is declarative. You define routing policies in Kubernetes-native resources, not in vendor-specific configuration files. When you add new hardware, the routing layer adapts without reconfiguration.</p>
+<p><strong>When you can skip it:</strong> If your prompts are short (under 1,000 tokens), your models are small (under 13B parameters), or your latency targets are relaxed (TTFT above 2 seconds), the complexity of disaggregation is not justified. It roughly doubles your operational surface area since you are now managing two GPU pools, a KV cache transfer mechanism, and cross-pool routing logic.</p>
 
-<h2>4. Latency Requirements: The TTFT Dividing Line</h2>
+<hr class="section-divider">
 
-<p>Latency requirements split into two distinct problems, and conflating them leads to architectures that are bad at both.</p>
+<!-- ───────── 4. Stack Patterns ───────── -->
+<h2 id="stack-patterns">4. Stack Patterns by Use Case</h2>
 
-<h3>Time to first token (TTFT)</h3>
-<p>TTFT is dominated by prefill &mdash; the phase where the model processes the entire input prompt. For a 4,000-token prompt on a 70B model, prefill can take 2-5 seconds depending on hardware. For real-time applications (chatbots, autocomplete, interactive agents), this is the metric that determines whether the experience feels responsive.</p>
+<p>Abstract frameworks are useful, but concrete patterns are what teams actually deploy. Here are five production patterns, each with specific architecture choices and the reasoning behind them.</p>
 
-<h3>Tokens per second (TPS)</h3>
-<p>TPS is dominated by decode &mdash; the autoregressive phase where tokens are generated one at a time. Decode is memory-bandwidth-bound, not compute-bound. High TPS requires fast memory, not more FLOPS.</p>
+<h3>Chatbot / Customer Support</h3>
 
-<h3>Prefill/decode disaggregation</h3>
-<p>When TTFT targets are aggressive (under 500ms for long contexts), the most effective architectural pattern is disaggregation: separate pools of GPUs for prefill and decode. Prefill pods are optimized for compute throughput &mdash; they chew through the prompt and produce KV cache entries. Decode pods are optimized for memory bandwidth &mdash; they generate tokens from warm cache as fast as the bus allows.</p>
+<p>Multi-turn conversation is the most common production use case, and it is the one where cache-aware routing pays the biggest dividends. Each turn in a conversation appends a few hundred tokens to a growing context window. Without prefix caching, every turn re-processes the entire conversation history from scratch. With it, only the new tokens require prefill computation.</p>
 
-<div class="callout callout-amber">
-<strong>When to disaggregate:</strong> If your p95 TTFT target is under 500ms and your average prompt length exceeds 2,000 tokens, disaggregation will almost certainly outperform a unified serving pool. If your prompts are short and your latency budget is generous, the operational complexity of disaggregation is not worth it.
+<p><strong>Architecture:</strong> vLLM with prefix caching enabled, EPP with session-affinity scoring, Gateway API for external traffic, HPA scaling on queue depth. Typical models are in the 7B to 70B range, often fine-tuned or LoRA-adapted for the support domain.</p>
+
+<p><strong>Expected performance:</strong> With prefix caching and cache-aware routing, TTFT on subsequent turns drops by 60-85% compared to naive round-robin routing. For a 5-turn conversation on a 13B model, this means the difference between 800ms TTFT on turn five (without cache routing) and 120ms (with it).</p>
+
+<h3>Code Completion / Copilot</h3>
+
+<p>Code completion is latency-critical in a way that chatbots are not. A developer typing code expects suggestions within 100-200ms. Anything slower feels broken. The prompts are typically short (a few hundred tokens of surrounding code context), but the request rate is extremely high since every keystroke or pause can trigger a completion request.</p>
+
+<p><strong>Architecture:</strong> Small, fast model (7B-13B), vLLM with speculative decoding if supported, EPP for load-aware routing (prefix caching matters less with short prompts), aggressive HPA scaling with fast pod startup. FP8 quantization to maximize throughput per GPU.</p>
+
+<p><strong>Key config:</strong> Set <code>max_num_seqs</code> high to handle the concurrency. Use <code>gpu_memory_utilization</code> at 0.90+ to maximize KV cache space for concurrent requests. Tune <code>max_model_len</code> down if you know your prompts are short &mdash; this frees memory for more concurrent sequences.</p>
+
+<h3>RAG (Retrieval-Augmented Generation)</h3>
+
+<p>RAG workloads have a distinctive traffic pattern: variable-length prompts constructed at runtime from retrieved documents, with significant prefix overlap when multiple users query the same knowledge base. The system prompt, retrieval instructions, and frequently-retrieved documents create shared prefixes across requests.</p>
+
+<p><strong>Architecture:</strong> vLLM with prefix caching, EPP with prefix-aware routing, models in the 13B-70B range depending on reasoning requirements. Long context support is critical &mdash; retrieved documents can push prompts to 8K-32K tokens.</p>
+
+<div class="callout-green callout">
+<strong>RAG prefix caching pattern</strong>
+In a well-designed RAG system, the system prompt and retrieval template form a common prefix shared by every request. If you route requests to the same replica, that prefix is computed once and cached. For a 2,000-token system prompt, this saves 30-50ms of prefill per request at the 13B scale &mdash; a meaningful saving at thousands of requests per minute.
 </div>
 
-<p>llm-d supports disaggregated prefill and decode natively. The EPP routes prefill requests to prefill-optimized pods and decode requests to decode-optimized pods, managing the handoff of KV cache state between them. This is orchestrated through standard Kubernetes primitives, not custom infrastructure.</p>
+<h3>Batch Processing</h3>
 
-<h2>5. Multi-Tenancy: Sharing Without Interference</h2>
+<p>Batch workloads &mdash; document summarization, data extraction, classification pipelines &mdash; optimize for throughput and cost, not latency. The goal is maximum tokens per dollar per hour.</p>
 
-<p>Multi-tenancy is the dimension that enterprise teams underestimate most. The first model deployment is a single team running a single model. By the sixth month, three teams want to share the cluster, each with their own fine-tuned adapter.</p>
+<p><strong>Architecture:</strong> vLLM with large batch sizes, load-aware routing (cache routing is less relevant since prompts are typically unique), no autoscaling (fixed replica count sized for the job), aggressive quantization (FP8 or INT4) to maximize throughput. Consider pipeline parallelism for very large models.</p>
 
-<h3>LoRA adapter serving</h3>
-<p>LoRA adapters are lightweight fine-tuned layers that sit on top of a base model. A single vLLM instance can serve multiple LoRA adapters from the same base model, swapping adapters per request. This is dramatically more efficient than running separate model instances for each tenant &mdash; the base model weights (which consume 95%+ of GPU memory) are shared.</p>
+<p><strong>Key config:</strong> Set <code>max_num_seqs</code> to the maximum your GPU memory supports. Disable or deprioritize TTFT optimization in favor of aggregate throughput. Use offline batching with the vLLM batch API rather than the OpenAI-compatible streaming endpoint.</p>
 
-<p>llm-d&rsquo;s EPP supports LoRA-aware routing. When a request specifies a LoRA adapter, the EPP routes to a replica that has that adapter loaded (or can load it with minimal overhead), while still considering cache state and load. This means multi-tenant serving does not sacrifice the cache-aware routing benefits.</p>
+<h3>Real-time Classification / Extraction</h3>
 
-<h3>Isolation and resource sharing</h3>
-<p>Kubernetes namespaces and resource quotas provide the isolation boundaries. On OpenShift, you get additional security context constraints and network policies. The key architectural decision is whether tenants share model replicas (via LoRA) or get dedicated replicas behind the same gateway. The answer depends on your isolation requirements: shared replicas are more cost-efficient; dedicated replicas provide stronger performance isolation.</p>
+<p>Structured extraction and classification tasks use small models with short prompts and require extreme low latency. Think: extracting entities from a customer message before routing it, classifying transaction risk in a payment pipeline, or parsing form fields from scanned documents.</p>
 
-<h2>The Decision Matrix</h2>
+<p><strong>Architecture:</strong> Small model (1B-7B), single GPU per replica, FP8 quantization, EPP for load balancing across many replicas, aggressive HPA scaling. These workloads are closer to traditional microservice traffic patterns &mdash; high concurrency, short request duration, low tolerance for tail latency.</p>
 
-<p>Use this table as a starting point. Each row is a dimension; each column is a common scenario. The cells tell you which llm-d capabilities to enable.</p>
+<p><strong>Expected performance:</strong> A 3B model on a single H100 with FP8 can process classification requests with sub-50ms TTFT and generate 5-10 output tokens in under 20ms. At this scale, the bottleneck shifts from GPU compute to network overhead and routing latency.</p>
 
-<table class="decision-table">
+<hr class="section-divider">
+
+<!-- ───────── 5. Complexity-Performance Tradeoff ───────── -->
+<h2 id="complexity-performance">5. The Complexity-Performance Tradeoff</h2>
+
+<p>Every component in your inference stack adds operational surface area. Each one introduces new failure modes, new configuration knobs, new metrics to monitor, and new on-call runbooks to write. The question is not "does this component improve performance?" (it almost always does) but "does the improvement justify the operational cost for my specific situation?"</p>
+
+<h3>The maturity curve</h3>
+
+<p>Teams naturally progress through stages of inference stack complexity. Understanding where you are on this curve prevents both premature optimization and unnecessary suffering.</p>
+
+<p><strong>Stage 1 &mdash; Single instance:</strong> One vLLM pod, one model, a Kubernetes Service in front of it. No routing intelligence, no autoscaling, no disaggregation. This handles proof-of-concept and low-traffic internal tools. Operational overhead: minimal. Performance ceiling: one GPU's worth of throughput.</p>
+
+<p><strong>Stage 2 &mdash; Replicated with smart routing:</strong> Multiple vLLM replicas behind an EPP. Cache-aware routing, load balancing, basic health checking. This is where most teams should start for production traffic. Adding the EPP to a replicated deployment typically improves TTFT by 40-70% for multi-turn workloads at nearly zero additional GPU cost. The improvement comes from routing intelligence, not more hardware.</p>
+
+<p><strong>Stage 3 &mdash; Observable and scalable:</strong> Prometheus metrics, Grafana dashboards, HPA autoscaling on inference-specific metrics. This is the minimum viable production stack. You can now see what is happening, react to traffic changes, and diagnose issues without guessing.</p>
+
+<p><strong>Stage 4 &mdash; Disaggregated and specialized:</strong> Separate prefill and decode pools, KV cache transfer, specialized routing. This is for teams with latency targets that cannot be met with a unified pool. The operational complexity roughly doubles, but the latency improvement for long-context workloads can be 3-5x.</p>
+
+<div class="callout-amber callout">
+<strong>When to stop adding complexity</strong>
+The "golden path" for 80% of production use cases is Stage 3: replicated vLLM, EPP for cache-aware routing, Prometheus monitoring, and HPA autoscaling. This configuration handles most traffic patterns, provides adequate latency for most SLOs, and is operationally tractable for a small team. Only move to Stage 4 if you have specific, measured evidence that your latency targets require it. Premature disaggregation is one of the most common sources of unnecessary operational pain in inference platforms.
+</div>
+
+<h3>Quantifying the tradeoff</h3>
+
+<p>Each component has a rough cost-benefit profile:</p>
+
+<table class="comparison-table">
   <thead>
     <tr>
-      <th>Dimension</th>
-      <th>Simple Case</th>
-      <th>Production Case</th>
-      <th>Advanced Case</th>
+      <th>Component</th>
+      <th>Ops Overhead</th>
+      <th>Performance Gain</th>
+      <th>When It Pays Off</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td><strong>Model Size</strong></td>
-      <td>&lt;30B, single GPU, no quantization</td>
-      <td>30-70B, TP=2-4, FP8 quantization</td>
-      <td>70B+, TP=8, mixed precision, multi-node</td>
+      <td>EPP</td>
+      <td>Low</td>
+      <td>40-70% TTFT improvement</td>
+      <td>Multi-turn, RAG, any prefix reuse</td>
     </tr>
     <tr>
-      <td><strong>Traffic Pattern</strong></td>
-      <td>Steady batch; load-aware routing</td>
-      <td>Bursty interactive; prefix-cache-aware routing</td>
-      <td>Agentic multi-turn; prefix caching + session affinity</td>
+      <td>Prometheus + Grafana</td>
+      <td>Low-Medium</td>
+      <td>Enables all future optimization</td>
+      <td>Any production deployment</td>
     </tr>
     <tr>
-      <td><strong>GPU Hardware</strong></td>
-      <td>Single GPU type; standard scheduling</td>
-      <td>Mixed A100/H100; node selectors</td>
-      <td>Multi-vendor (NVIDIA + AMD); topology-aware placement</td>
+      <td>HPA Autoscaler</td>
+      <td>Medium</td>
+      <td>30-50% cost reduction</td>
+      <td>Variable traffic patterns</td>
     </tr>
     <tr>
-      <td><strong>Latency</strong></td>
-      <td>Relaxed TTFT (&gt;2s); unified serving</td>
-      <td>Moderate TTFT (&lt;1s); cache-aware routing</td>
-      <td>Aggressive TTFT (&lt;500ms); prefill/decode disaggregation</td>
+      <td>Gateway API</td>
+      <td>Medium</td>
+      <td>Security, rate limiting, traffic management</td>
+      <td>External-facing endpoints</td>
     </tr>
     <tr>
-      <td><strong>Multi-tenancy</strong></td>
-      <td>Single tenant; single model</td>
-      <td>2-5 tenants; LoRA adapters, shared base model</td>
-      <td>Enterprise multi-tenant; LoRA routing + namespace isolation</td>
+      <td>Disaggregation</td>
+      <td>High</td>
+      <td>3-5x TTFT improvement on long contexts</td>
+      <td>Long context + aggressive TTFT SLO</td>
+    </tr>
+    <tr>
+      <td>LoRA routing</td>
+      <td>Medium</td>
+      <td>5-10x cost reduction vs. separate deployments</td>
+      <td>Multiple fine-tuned models on shared base</td>
     </tr>
   </tbody>
 </table>
 
-<h2>Putting It Together</h2>
+<hr class="section-divider">
 
-<p>These five dimensions are not independent sliders. Model size constrains GPU choice. Traffic pattern determines whether cache-aware routing matters. Latency targets determine whether disaggregation is worth the complexity. Multi-tenancy compounds everything.</p>
+<!-- ───────── 6. Migration Paths ───────── -->
+<h2 id="migration-paths">6. Migration Paths: How to Evolve Your Stack</h2>
 
-<p>The value of llm-d as a platform is that these capabilities compose. You can start with a single model on a single GPU with load-aware routing, then add prefix caching when you move to multi-turn workloads, add LoRA adapters when the second team shows up, and add disaggregation when your TTFT SLA tightens. The routing layer evolves with your requirements because it is built on Kubernetes-native primitives, not a monolithic inference platform.</p>
+<p>The worst way to build an inference platform is to design the final architecture on day one and try to deploy it all at once. The right approach is incremental: start with the simplest architecture that meets your current needs, instrument it, measure it, and add complexity only when measurement shows you need it. Here is the concrete progression.</p>
 
-<p>The wrong time to make these decisions is when your proof-of-concept is already in production and the SLA is on fire. The right time is now.</p>
+<h3>Phase 1: Single vLLM instance</h3>
 
-<h2>Try the Interactive Tool</h2>
+<p><strong>Trigger:</strong> You have a model and you need to serve it. <strong>Architecture:</strong> One vLLM pod, one Kubernetes Service, one model. <strong>What you gain:</strong> A working inference endpoint. <strong>What you risk:</strong> No redundancy, no scaling, no routing intelligence. Good for development, staging, and low-traffic internal tools.</p>
 
-<p>The <a href="https://markellr-redhat.github.io/llm-d-choose-your-stack/">Choose Your Own Inference Stack</a> interactive tool walks you through each dimension, shows how your choices interact, and generates a tailored architecture recommendation. Use it to explore the decision space before committing to an architecture.</p>
+<div class="code-block">
+  <span class="code-block-label">yaml</span>
+  <pre><span class="yaml-comment"># Phase 1: Minimal vLLM deployment</span>
+<span class="yaml-key">apiVersion:</span> <span class="yaml-val">apps/v1</span>
+<span class="yaml-key">kind:</span> <span class="yaml-val">Deployment</span>
+<span class="yaml-key">metadata:</span>
+  <span class="yaml-key">name:</span> <span class="yaml-val">vllm-server</span>
+<span class="yaml-key">spec:</span>
+  <span class="yaml-key">replicas:</span> <span class="yaml-num">1</span>
+  <span class="yaml-key">template:</span>
+    <span class="yaml-key">spec:</span>
+      <span class="yaml-key">containers:</span>
+      - <span class="yaml-key">name:</span> <span class="yaml-val">vllm</span>
+        <span class="yaml-key">image:</span> <span class="yaml-val">vllm/vllm-openai:latest</span>
+        <span class="yaml-key">args:</span>
+        - <span class="yaml-val">"--model"</span>
+        - <span class="yaml-val">"meta-llama/Llama-3.1-8B-Instruct"</span>
+        - <span class="yaml-val">"--enable-prefix-caching"</span>
+        <span class="yaml-key">resources:</span>
+          <span class="yaml-key">limits:</span>
+            <span class="yaml-key">nvidia.com/gpu:</span> <span class="yaml-num">1</span></pre>
+</div>
 
-<ul>
-  <li><strong>Interactive tool:</strong> <a href="https://markellr-redhat.github.io/llm-d-choose-your-stack/">Choose Your Own Inference Stack</a></li>
-  <li><strong>llm-d on GitHub:</strong> <a href="https://github.com/llm-d/llm-d">github.com/llm-d/llm-d</a></li>
-  <li><strong>CNCF Slack:</strong> <a href="https://cloud-native.slack.com/archives/llm-d">#llm-d on CNCF Slack</a></li>
+<h3>Phase 2: Add EPP for cache-aware routing</h3>
+
+<p><strong>Trigger:</strong> You scale to multiple replicas and notice that TTFT varies wildly between requests, or you start serving multi-turn conversations and realize each turn is re-computing the full context. <strong>What you gain:</strong> The EPP tracks KV cache state across all replicas and routes requests to the pod with the longest matching cached prefix. For multi-turn workloads, this is typically the single biggest performance improvement available &mdash; often larger than upgrading GPU hardware. <strong>What you risk:</strong> The EPP is an additional component that needs to be healthy for routing to work. If it goes down, you fall back to default Kubernetes routing (functional, but not cache-aware).</p>
+
+<h3>Phase 3: Add monitoring and alerting</h3>
+
+<p><strong>Trigger:</strong> You are running in production and you need to answer questions like "why was latency high at 3 PM?" or "are we going to need more GPUs next month?" <strong>What you gain:</strong> Visibility into TTFT distributions, cache hit rates, queue depths, GPU utilization, and throughput trends. You can set alerts on p95 TTFT, queue depth thresholds, and GPU memory utilization. <strong>What you risk:</strong> Prometheus and Grafana are mature, well-understood tools, but they need storage, retention policies, and dashboard maintenance. Budget 4-8 hours for initial setup and 1-2 hours per week for ongoing maintenance.</p>
+
+<h3>Phase 4: Add autoscaling</h3>
+
+<p><strong>Trigger:</strong> Your traffic is variable enough that a fixed replica count either wastes GPUs during off-peak hours or drops requests during peaks. <strong>What you gain:</strong> HPA scales replica count based on vLLM-exported metrics (queue depth, pending requests). You stop paying for idle GPUs during off-peak hours and stop dropping requests during peak. <strong>What you risk:</strong> Autoscaling with GPUs is slower than autoscaling with CPUs. New vLLM pods need to load model weights, which takes 30 seconds to several minutes depending on model size. Your scaling policy needs to account for this startup time with appropriate stabilization windows and predictive scaling.</p>
+
+<h3>Phase 5: Add disaggregation</h3>
+
+<p><strong>Trigger:</strong> Your measured p95 TTFT exceeds your SLO, and profiling shows that long prefill operations are blocking decode operations on shared GPUs. This typically manifests when serving models above 30B parameters with prompts above 2,000 tokens and TTFT targets below 500ms. <strong>What you gain:</strong> Prefill and decode run on separate GPU pools. Prefill pods are optimized for compute throughput; decode pods are optimized for memory bandwidth. Neither blocks the other. <strong>What you risk:</strong> You are now managing two GPU pools, KV cache transfer between them, and cross-pool routing logic. Operational complexity roughly doubles. Only pursue this with specific, measured evidence that unified serving cannot meet your SLOs.</p>
+
+<h3>Phase 6: Add multi-tenancy</h3>
+
+<p><strong>Trigger:</strong> A second team wants to serve their fine-tuned adapter on the same infrastructure, or you need to provide isolated model endpoints for different customers or business units. <strong>What you gain:</strong> LoRA-aware routing allows multiple fine-tuned adapters to share base model weights on the same GPU. The EPP routes requests to replicas that have the requested adapter loaded, combining cache awareness with adapter awareness. Namespace isolation provides security boundaries between tenants. <strong>What you risk:</strong> Multi-tenant scheduling adds complexity to routing decisions. Adapter loading has a cold-start penalty (typically 1-5 seconds). You need policies for adapter eviction, priority, and resource quotas.</p>
+
+<hr class="section-divider">
+
+<!-- ───────── 7. Comparison ───────── -->
+<h2 id="comparison">7. Comparison with Alternative Stacks</h2>
+
+<p>A fair comparison requires acknowledging that different platforms optimize for different things. There is no universally "best" inference stack; there is only the best stack for your specific constraints. Here is how llm-d compares to the alternatives on the dimensions that matter.</p>
+
+<h3>TensorRT-LLM + Triton Inference Server</h3>
+
+<p>NVIDIA's native stack delivers the highest single-GPU performance on NVIDIA hardware. TensorRT-LLM compiles models into optimized CUDA kernels with aggressive operator fusion, and Triton provides a mature model-serving framework with dynamic batching, model versioning, and ensemble pipelines.</p>
+
+<p><strong>Where it wins:</strong> Raw inference speed on NVIDIA GPUs, especially for models that benefit from FP8 quantization and custom CUDA kernels. The performance gap is real, typically 10-25% higher throughput per GPU compared to vLLM for supported models.</p>
+
+<p><strong>Where it does not:</strong> TensorRT-LLM requires model compilation, which adds minutes to hours to the deployment pipeline and makes rapid model iteration difficult. Triton's routing is not KV-cache-aware &mdash; it does dynamic batching within a single instance but does not understand cross-replica cache state. The stack is NVIDIA-only, which is a meaningful limitation as AMD GPUs become more available and cost-competitive. Multi-tenant LoRA serving requires manual configuration rather than dynamic routing.</p>
+
+<h3>SGLang</h3>
+
+<p>SGLang is a strong inference engine with excellent prefix caching (RadixAttention) and structured generation support. It particularly shines for workloads that involve constrained decoding &mdash; JSON output, grammar-guided generation, and fill-in-the-middle tasks.</p>
+
+<p><strong>Where it wins:</strong> Structured output performance, prefix caching efficiency within a single instance, and developer ergonomics for prompt programming patterns.</p>
+
+<p><strong>Where it does not:</strong> SGLang is primarily a single-process inference engine. It does not provide distributed orchestration, cross-replica cache-aware routing, Kubernetes-native deployment primitives, or autoscaling. For production deployments with multiple replicas, you need to build the routing and scaling layer yourself or integrate with an external orchestrator.</p>
+
+<h3>Ray Serve + vLLM</h3>
+
+<p>Ray Serve wraps vLLM in Ray's distributed computing framework, adding autoscaling, model multiplexing, and integration with the broader Ray ML ecosystem (Ray Train, Ray Data). This is a natural fit for teams already invested in Ray for training and data processing.</p>
+
+<p><strong>Where it wins:</strong> Integration with Ray's ML pipeline tools, model composition (chaining models, pre/post-processing), and autoscaling across heterogeneous resources.</p>
+
+<p><strong>Where it does not:</strong> Ray adds significant memory and CPU overhead for its distributed runtime. More importantly, Ray Serve's routing is not inference-aware &mdash; it does not understand KV cache state, prefix overlap, or LoRA adapter locality. Routing decisions are based on generic load metrics, not the inference-specific signals that determine actual latency. For teams not already using Ray, the learning curve and operational overhead are substantial.</p>
+
+<h3>Ollama</h3>
+
+<p>Ollama is the right tool for local development, experimentation, and single-user desktop inference. It provides a beautiful developer experience: one command to download and serve a model, a simple API, and broad model support.</p>
+
+<p><strong>Where it wins:</strong> Developer experience, local development workflow, ease of setup.</p>
+
+<p><strong>Where it does not:</strong> Ollama is not designed for production serving. It lacks multi-replica support, cache-aware routing, autoscaling, GPU sharing, LoRA adapter routing, and the monitoring and observability primitives that production workloads require. Using Ollama in production is like using SQLite as your production database &mdash; it works until it does not, and the failure mode is sudden.</p>
+
+<h3>llm-d</h3>
+
+<p>llm-d's differentiator is that it treats inference serving as a distributed systems problem, not just a single-GPU optimization problem. The EPP's cache-aware routing, the Gateway API integration, and the Kubernetes-native deployment model address the gap between "inference engine" and "inference platform."</p>
+
+<p><strong>Where it wins:</strong> Cache-aware cross-replica routing, LoRA-aware multi-tenant serving, Kubernetes-native deployment and scaling, composable architecture that lets you adopt components incrementally, and multi-vendor GPU support (NVIDIA and AMD).</p>
+
+<p><strong>Where it does not:</strong> llm-d requires Kubernetes. If your team does not have Kubernetes expertise, the learning curve is real. The raw single-GPU inference speed is vLLM's, which is excellent but not the absolute fastest on NVIDIA hardware (TensorRT-LLM edges it out on some workloads). The project is relatively new (CNCF Sandbox stage), so the ecosystem of third-party integrations is still growing.</p>
+
+<table class="comparison-table">
+  <thead>
+    <tr>
+      <th>Capability</th>
+      <th>llm-d</th>
+      <th>TRT-LLM + Triton</th>
+      <th>SGLang</th>
+      <th>Ray Serve</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Cache-aware routing</td>
+      <td>Native (EPP)</td>
+      <td>No</td>
+      <td>Single-process only</td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td>LoRA multi-tenancy</td>
+      <td>Dynamic routing</td>
+      <td>Manual config</td>
+      <td>Limited</td>
+      <td>Model multiplexing</td>
+    </tr>
+    <tr>
+      <td>Kubernetes-native</td>
+      <td>Yes (Gateway API)</td>
+      <td>Via Triton K8s operator</td>
+      <td>Manual deployment</td>
+      <td>Via KubeRay</td>
+    </tr>
+    <tr>
+      <td>Disaggregation</td>
+      <td>Supported</td>
+      <td>No</td>
+      <td>No</td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td>Multi-vendor GPU</td>
+      <td>NVIDIA + AMD</td>
+      <td>NVIDIA only</td>
+      <td>NVIDIA + AMD</td>
+      <td>NVIDIA + AMD</td>
+    </tr>
+    <tr>
+      <td>Single-GPU perf</td>
+      <td>Excellent (vLLM)</td>
+      <td>Best (TRT-LLM)</td>
+      <td>Excellent</td>
+      <td>Excellent (vLLM)</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr class="section-divider">
+
+<!-- ───────── 8. Decision Checklist ───────── -->
+<h2 id="decision-checklist">8. Decision Checklist for Enterprises</h2>
+
+<p>Before committing to an inference architecture, work through these ten questions. Each one maps to a specific architectural decision. If you cannot answer a question, that is itself a finding &mdash; it means you need to gather more information before you can make an informed decision.</p>
+
+<ul class="checklist">
+  <li>
+    <span class="checklist-num">1</span>
+    <span class="checklist-content">
+      <strong>What model(s) will you serve?</strong>
+      <em>Determines GPU memory requirements, tensor parallelism degree, and minimum deployment cost. A 7B model on one GPU is a fundamentally different operational problem than a 70B model across four.</em>
+    </span>
+  </li>
+  <li>
+    <span class="checklist-num">2</span>
+    <span class="checklist-content">
+      <strong>What are your latency SLOs?</strong>
+      <em>Defines whether you need unified serving (TTFT > 1s), cache-aware routing (TTFT 200ms-1s), or disaggregation (TTFT < 200ms on long contexts). Be specific: p50, p95, p99.</em>
+    </span>
+  </li>
+  <li>
+    <span class="checklist-num">3</span>
+    <span class="checklist-content">
+      <strong>How many teams or tenants will share the infrastructure?</strong>
+      <em>Single-tenant is simple. Multi-tenant requires LoRA-aware routing, namespace isolation, resource quotas, and chargeback mechanisms. Each tenant added increases routing complexity.</em>
+    </span>
+  </li>
+  <li>
+    <span class="checklist-num">4</span>
+    <span class="checklist-content">
+      <strong>What is your GPU budget?</strong>
+      <em>Determines replica count, redundancy level, and whether you can afford dedicated prefill/decode pools. Also determines how aggressively you should pursue efficiency optimizations like quantization and cache-aware routing.</em>
+    </span>
+  </li>
+  <li>
+    <span class="checklist-num">5</span>
+    <span class="checklist-content">
+      <strong>Cloud or on-premise?</strong>
+      <em>Cloud offers elastic GPU provisioning but at higher per-hour cost. On-premise offers lower per-hour cost but requires capacity planning and hardware procurement lead times. Hybrid adds networking complexity.</em>
+    </span>
+  </li>
+  <li>
+    <span class="checklist-num">6</span>
+    <span class="checklist-content">
+      <strong>What is your ops team's Kubernetes maturity?</strong>
+      <em>llm-d is Kubernetes-native, which is a strength if your team lives in Kubernetes and a barrier if they do not. Be honest about this. The best architecture is one your team can operate at 2 AM.</em>
+    </span>
+  </li>
+  <li>
+    <span class="checklist-num">7</span>
+    <span class="checklist-content">
+      <strong>Do you need LoRA adapters?</strong>
+      <em>If multiple fine-tuned models share a base model, LoRA adapters with dynamic routing can reduce GPU cost by 5-10x compared to serving separate model instances. This determines whether you need LoRA-aware routing in the EPP.</em>
+    </span>
+  </li>
+  <li>
+    <span class="checklist-num">8</span>
+    <span class="checklist-content">
+      <strong>What is your availability target?</strong>
+      <em>99.9% availability requires at least 2 replicas with health checking and failover. 99.99% requires geographic redundancy or multi-zone deployment. Each nine adds operational and cost overhead.</em>
+    </span>
+  </li>
+  <li>
+    <span class="checklist-num">9</span>
+    <span class="checklist-content">
+      <strong>Do you have existing monitoring infrastructure?</strong>
+      <em>If you already run Prometheus and Grafana, integrating vLLM metrics is straightforward. If you are starting from scratch, budget 1-2 weeks for monitoring setup, dashboard design, and alert tuning.</em>
+    </span>
+  </li>
+  <li>
+    <span class="checklist-num">10</span>
+    <span class="checklist-content">
+      <strong>What is your scaling profile?</strong>
+      <em>Steady traffic can use fixed replicas. Predictable peaks (business hours, campaign launches) can use scheduled scaling. Unpredictable spikes require reactive HPA with appropriate stabilization windows and startup time buffers.</em>
+    </span>
+  </li>
 </ul>
 
+<hr class="section-divider">
+
+<!-- ───────── 9. Conclusion ───────── -->
+<h2 id="conclusion">9. Conclusion</h2>
+
+<p>There is no universally correct inference stack. There is only the stack that matches your constraints: your model, your latency targets, your traffic pattern, your GPU budget, and the operational maturity of your team. The teams that deploy successfully are the ones that are honest about those constraints and build incrementally toward the architecture they need, rather than the architecture they admire.</p>
+
+<p>llm-d gives you the components to build that architecture on Kubernetes-native primitives. Start with vLLM and a load balancer. Add the EPP when you have multiple replicas and multi-turn workloads. Add Prometheus when you need to see what is happening. Add autoscaling when your traffic justifies it. Add disaggregation when your measurements demand it. Each step should be triggered by evidence, not aspiration.</p>
+
+<p>The <a href="../">Choose Your Own Inference Stack</a> interactive tool walks you through each dimension, shows how your choices interact, and generates a tailored architecture recommendation. Use it to explore the decision space before committing.</p>
+
+<p>Dig deeper into the project and community:</p>
+
+<ul>
+  <li><strong>Interactive tool:</strong> <a href="../">Choose Your Own Inference Stack</a></li>
+  <li><strong>llm-d on GitHub:</strong> <a href="https://github.com/llm-d/llm-d">github.com/llm-d/llm-d</a></li>
+  <li><strong>Documentation:</strong> <a href="https://llm-d.ai">llm-d.ai</a></li>
+  <li><strong>CNCF Slack:</strong> <a href="https://cloud-native.slack.com/archives/llm-d">#llm-d on CNCF Slack</a></li>
+  <li><strong>Content Hub:</strong> <a href="https://markellr-redhat.github.io/llm-d-content-hub/">llm-d Content Hub</a></li>
+</ul>
+
+<p>The right time to make these decisions is before your proof-of-concept is running in production and your SLA is on fire. The second-best time is now.</p>
+
+</article>
 </div>
 
-<div class="footer-note">Markell Rawls &middot; Developer Advocate &middot; Red Hat</div>
+<!-- ════════════════════ FOOTER ════════════════════ -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-links">
+      <a href="https://markellr-redhat.github.io/llm-d-content-hub/">llm-d Content Hub</a>
+      <a href="../">Interactive Tool</a>
+      <a href="https://github.com/llm-d/llm-d">GitHub</a>
+      <a href="https://cloud-native.slack.com/archives/llm-d">CNCF Slack</a>
+    </div>
+    <div class="footer-credit">Markell Rawls &middot; AI Evangelist &middot; Red Hat</div>
+  </div>
+</footer>
 
-<div class="hub-link">
-  <a href="https://markellr-redhat.github.io/llm-d-content-hub/" style="color:var(--rh-red-dark);">&larr; Back to llm-d Content Hub</a>
-  <a href="https://markellr-redhat.github.io/llm-d-choose-your-stack/" style="color:var(--rh-blue);">Open Interactive Tool &rarr;</a>
-</div>
-
-</div>
 </body>
 </html>
