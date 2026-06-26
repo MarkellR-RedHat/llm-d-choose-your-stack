@@ -793,9 +793,9 @@
   <div class="hero-meta">
     <span class="hero-meta-item">Markell Rawls</span>
     <span class="hero-meta-item"><span class="dot"></span></span>
-    <span class="hero-meta-item">20 min read</span>
+    <span class="hero-meta-item">28 min read</span>
     <span class="hero-meta-item"><span class="dot"></span></span>
-    <span class="hero-meta-item">~3,800 words</span>
+    <span class="hero-meta-item">~5,500 words</span>
     <span class="hero-meta-item"><span class="dot"></span></span>
     <span class="meta-tag">llm-d</span>
   </div>
@@ -803,7 +803,7 @@
 
 <!-- ════════════════════ TL;DR ════════════════════ -->
 <div class="tldr">
-  <div class="tldr-title"><span class="tldr-icon">&#9889;</span> TL;DR &mdash; The Whole Post in 5 Bullets</div>
+  <div class="tldr-title"><span class="tldr-icon">&#9889;</span> TL;DR: The Whole Post in 5 Bullets</div>
   <ul>
     <li><strong>Five questions decide your stack:</strong> model size, latency target, traffic shape, GPU budget, and deployment environment. Answer those and the architecture falls out.</li>
     <li><strong>Start at Stage 3, not Stage 1:</strong> vLLM + EPP for cache-aware routing + Prometheus + HPA autoscaling covers 80% of production use cases. Don't start simpler than you need to be.</li>
@@ -818,12 +818,14 @@
   <div class="toc-title">Contents</div>
   <ol>
     <li><a href="#introduction">Introduction: The Problem with "Just Deploy It"</a> <span class="toc-time">~2 min</span></li>
-    <li><a href="#decision-framework">The Decision Framework: Five Dimensions That Define Your Stack</a> <span class="toc-time">~3 min</span></li>
+    <li><a href="#decision-framework">The Decision Framework: Five Dimensions That Define Your Stack</a> <span class="toc-time">~4 min</span></li>
     <li><a href="#component-deep-dives">Component Deep Dives: What You Need and When</a> <span class="toc-time">~4 min</span></li>
     <li><a href="#stack-patterns">Stack Patterns by Use Case</a> <span class="toc-time">~3 min</span></li>
     <li><a href="#complexity-performance">The Complexity-Performance Tradeoff</a> <span class="toc-time">~2 min</span></li>
     <li><a href="#migration-paths">Migration Paths: How to Evolve Your Stack</a> <span class="toc-time">~3 min</span></li>
-    <li><a href="#comparison">Comparison with Alternative Stacks</a> <span class="toc-time">~3 min</span></li>
+    <li><a href="#horror-stories">Migration Horror Stories: Lessons Learned the Hard Way</a> <span class="toc-time">~3 min</span></li>
+    <li><a href="#comparison">Deep Comparison with Alternative Stacks</a> <span class="toc-time">~5 min</span></li>
+    <li><a href="#tco">Total Cost of Ownership Across Stacks</a> <span class="toc-time">~2 min</span></li>
     <li><a href="#decision-checklist">Decision Checklist for Enterprises</a> <span class="toc-time">~2 min</span></li>
     <li><a href="#conclusion">Conclusion</a> <span class="toc-time">~1 min</span></li>
   </ol>
@@ -843,7 +845,7 @@
 
 <p>This is the problem that <a href="https://github.com/llm-d/llm-d">llm-d</a> solves. It is a CNCF Sandbox project that assembles the complete inference platform from Kubernetes-native components: vLLM for inference, the Endpoint Picker Plugin (EPP) for cache-aware routing, Gateway API for traffic management, KServe for model lifecycle, and Prometheus for observability. Each component is optional. You adopt what you need and skip what you do not.</p>
 
-<p>But "which components do you need?" is exactly the question that trips teams up. I'm going to kill that question in the next 20 minutes. The answer depends on five dimensions &mdash; your model size, your latency targets, your traffic shape, your GPU budget, and your deployment environment &mdash; and those five dimensions produce a surprisingly small number of practical architectures. This post maps the decision space. The companion <a href="../">Choose Your Own Inference Stack</a> interactive tool lets you explore it dynamically.</p>
+<p>But "which components do you need?" is exactly the question that trips teams up. I'm going to kill that question in the next 28 minutes. The answer depends on five dimensions: your model size, your latency targets, your traffic shape, your GPU budget, and your deployment environment. Those five dimensions produce a surprisingly small number of practical architectures. This post maps the decision space. The companion <a href="../">Choose Your Own Inference Stack</a> interactive tool lets you explore it dynamically.</p>
 
 <hr class="section-divider">
 
@@ -866,7 +868,7 @@
 
 <div class="callout">
 <strong><span class="callout-icon">&#128161;</span> Key insight</strong>
-These dimensions are not independent sliders. Model size constrains GPU choice. Traffic pattern determines whether cache-aware routing delivers value. Latency targets determine whether disaggregation is worth the operational complexity. The danger is optimizing one dimension while ignoring its interactions with the others. A 70B model with aggressive latency targets and a small GPU budget is an unsolvable equation &mdash; something has to give.
+These dimensions are not independent sliders. Model size constrains GPU choice. Traffic pattern determines whether cache-aware routing delivers value. Latency targets determine whether disaggregation is worth the operational complexity. The danger is optimizing one dimension while ignoring its interactions with the others. A 70B model with aggressive latency targets and a small GPU budget is an unsolvable equation; something has to give.
 </div>
 
 <!-- ════════════════════ DECISION TREE VISUAL ════════════════════ -->
@@ -912,7 +914,67 @@ These dimensions are not independent sliders. Model size constrains GPU choice. 
 <span class="branch">                 </span><span class="leaf">    Stage 4 "Disaggregated"  |  8+ GPUs/pool</span></div>
 </div>
 
-<p>Print that out. Tape it to your monitor. When someone asks "what inference stack should we use?" walk them through those two questions. Nine times out of ten, you'll land on Stage 3 &mdash; and that's exactly right.</p>
+<p>Print that out. Tape it to your monitor. When someone asks "what inference stack should we use?" walk them through those two questions. Nine times out of ten, you'll land on Stage 3, and that's exactly right.</p>
+
+<!-- ════════════════════ GPU BUDGET FLOWCHART ════════════════════ -->
+<div class="decision-tree">
+  <div class="decision-tree-title">&#9655; GPU Budget to Architecture Mapping</div>
+  <div class="decision-tree-subtitle">Given your GPU budget, here is the architecture that extracts the most value.</div>
+  <div class="tree-diagram"><span class="node">TOTAL GPU BUDGET?</span>
+<span class="branch">  |</span>
+<span class="branch">  +--</span> <span class="label">1-2 GPUs (dev/prototype)</span>
+<span class="branch">  |    |</span>
+<span class="branch">  |    +--</span> <span class="node">MODEL SIZE?</span>
+<span class="branch">  |         |</span>
+<span class="branch">  |         +--</span> <span class="label">&lt; 13B</span>
+<span class="branch">  |         |    </span><span class="leaf">--> Single vLLM, FP8 quant, 1 GPU</span>
+<span class="branch">  |         |    </span><span class="leaf">    No redundancy. Good for dev/staging.</span>
+<span class="branch">  |         |</span>
+<span class="branch">  |         +--</span> <span class="label">13B-70B</span>
+<span class="branch">  |              </span><span class="leaf">--> Single vLLM, INT4/AWQ quant, TP=2</span>
+<span class="branch">  |              </span><span class="leaf">    Aggressive quantization required.</span>
+<span class="branch">  |</span>
+<span class="branch">  +--</span> <span class="label">4-8 GPUs (small production)</span>
+<span class="branch">  |    |</span>
+<span class="branch">  |    +--</span> <span class="node">MULTI-TENANT?</span>
+<span class="branch">  |         |</span>
+<span class="branch">  |         +--</span> <span class="label">No (single model/team)</span>
+<span class="branch">  |         |    </span><span class="leaf">--> 2-4 replicas + EPP + HPA</span>
+<span class="branch">  |         |    </span><span class="leaf">    Stage 3. Max out cache-aware routing.</span>
+<span class="branch">  |         |</span>
+<span class="branch">  |         +--</span> <span class="label">Yes (multiple LoRA adapters)</span>
+<span class="branch">  |              </span><span class="leaf">--> 2-4 replicas + EPP + LoRA routing</span>
+<span class="branch">  |              </span><span class="leaf">    Share base model, route by adapter.</span>
+<span class="branch">  |</span>
+<span class="branch">  +--</span> <span class="label">16-32 GPUs (medium production)</span>
+<span class="branch">  |    |</span>
+<span class="branch">  |    +--</span> <span class="node">LATENCY CRITICAL?</span>
+<span class="branch">  |         |</span>
+<span class="branch">  |         +--</span> <span class="label">No</span>
+<span class="branch">  |         |    </span><span class="leaf">--> 4-8 replicas + EPP + HPA + Prometheus</span>
+<span class="branch">  |         |    </span><span class="leaf">    Stage 3. Scale replicas, not complexity.</span>
+<span class="branch">  |         |</span>
+<span class="branch">  |         +--</span> <span class="label">Yes (TTFT &lt; 500ms on long context)</span>
+<span class="branch">  |              </span><span class="leaf">--> Disaggregation: 8 prefill + 8 decode</span>
+<span class="branch">  |              </span><span class="leaf">    Stage 4. Split pools by phase.</span>
+<span class="branch">  |</span>
+<span class="branch">  +--</span> <span class="label">64+ GPUs (large-scale production)</span>
+<span class="branch">       |</span>
+<span class="branch">       +--</span> <span class="node">WORKLOAD MIX?</span>
+<span class="branch">            |</span>
+<span class="branch">            +--</span> <span class="label">Homogeneous (one model, one use case)</span>
+<span class="branch">            |    </span><span class="leaf">--> Disaggregated pools + Gateway + full observability</span>
+<span class="branch">            |    </span><span class="leaf">    Stage 4. Optimize prefill/decode ratio by measurement.</span>
+<span class="branch">            |</span>
+<span class="branch">            +--</span> <span class="label">Heterogeneous (multiple models, teams)</span>
+<span class="branch">                 </span><span class="leaf">--> Multi-pool: LoRA routing + per-tenant quotas</span>
+<span class="branch">                 </span><span class="leaf">    Stage 4 + multi-tenancy. Namespace isolation.</span></div>
+</div>
+
+<div class="callout-purple callout">
+<strong><span class="callout-icon">&#128202;</span> Budget rule of thumb</strong>
+At fewer than 8 GPUs, spend your engineering time maximizing cache-aware routing efficiency rather than adding architectural complexity. The EPP is your best lever. At 16+ GPUs, you have enough headroom to justify disaggregation if your latency measurements warrant it. At 64+ GPUs, multi-tenancy and namespace isolation become essential for cost accountability and team autonomy.
+</div>
 
 <hr class="section-divider">
 
@@ -985,22 +1047,22 @@ Start with four dashboards: (1) TTFT by percentile, which tells you if users are
 
 <p><strong>Architecture:</strong> Small, fast model (7B-13B), vLLM with speculative decoding if supported, EPP for load-aware routing (prefix caching matters less with short prompts), aggressive HPA scaling with fast pod startup. FP8 quantization to maximize throughput per GPU.</p>
 
-<p><strong>Key config:</strong> Set <code>max_num_seqs</code> high to handle the concurrency. Use <code>gpu_memory_utilization</code> at 0.90+ to maximize KV cache space for concurrent requests. Tune <code>max_model_len</code> down if you know your prompts are short &mdash; this frees memory for more concurrent sequences.</p>
+<p><strong>Key config:</strong> Set <code>max_num_seqs</code> high to handle the concurrency. Use <code>gpu_memory_utilization</code> at 0.90+ to maximize KV cache space for concurrent requests. Tune <code>max_model_len</code> down if you know your prompts are short; this frees memory for more concurrent sequences.</p>
 
 <h3>RAG (Retrieval-Augmented Generation)</h3>
 
 <p>RAG workloads have a distinctive traffic pattern: variable-length prompts constructed at runtime from retrieved documents, with significant prefix overlap when multiple users query the same knowledge base. The system prompt, retrieval instructions, and frequently-retrieved documents create shared prefixes across requests.</p>
 
-<p><strong>Architecture:</strong> vLLM with prefix caching, EPP with prefix-aware routing, models in the 13B-70B range depending on reasoning requirements. Long context support is critical &mdash; retrieved documents can push prompts to 8K-32K tokens.</p>
+<p><strong>Architecture:</strong> vLLM with prefix caching, EPP with prefix-aware routing, models in the 13B-70B range depending on reasoning requirements. Long context support is critical, as retrieved documents can push prompts to 8K-32K tokens.</p>
 
 <div class="callout-green callout">
 <strong><span class="callout-icon">&#9889;</span> RAG prefix caching pattern</strong>
-In a well-designed RAG system, the system prompt and retrieval template form a common prefix shared by every request. If you route requests to the same replica, that prefix is computed once and cached. For a 2,000-token system prompt, this saves 30-50ms of prefill per request at the 13B scale &mdash; a meaningful saving at thousands of requests per minute.
+In a well-designed RAG system, the system prompt and retrieval template form a common prefix shared by every request. If you route requests to the same replica, that prefix is computed once and cached. For a 2,000-token system prompt, this saves 30-50ms of prefill per request at the 13B scale, a meaningful saving at thousands of requests per minute.
 </div>
 
 <h3>Batch Processing</h3>
 
-<p>Batch workloads &mdash; document summarization, data extraction, classification pipelines &mdash; optimize for throughput and cost, not latency. The goal is maximum tokens per dollar per hour.</p>
+<p>Batch workloads (document summarization, data extraction, classification pipelines) optimize for throughput and cost, not latency. The goal is maximum tokens per dollar per hour.</p>
 
 <p><strong>Architecture:</strong> vLLM with large batch sizes, load-aware routing (cache routing is less relevant since prompts are typically unique), no autoscaling (fixed replica count sized for the job), aggressive quantization (FP8 or INT4) to maximize throughput. Consider pipeline parallelism for very large models.</p>
 
@@ -1010,7 +1072,7 @@ In a well-designed RAG system, the system prompt and retrieval template form a c
 
 <p>Structured extraction and classification tasks use small models with short prompts and require extreme low latency. Think: extracting entities from a customer message before routing it, classifying transaction risk in a payment pipeline, or parsing form fields from scanned documents.</p>
 
-<p><strong>Architecture:</strong> Small model (1B-7B), single GPU per replica, FP8 quantization, EPP for load balancing across many replicas, aggressive HPA scaling. These workloads are closer to traditional microservice traffic patterns &mdash; high concurrency, short request duration, low tolerance for tail latency.</p>
+<p><strong>Architecture:</strong> Small model (1B-7B), single GPU per replica, FP8 quantization, EPP for load balancing across many replicas, aggressive HPA scaling. These workloads are closer to traditional microservice traffic patterns: high concurrency, short request duration, low tolerance for tail latency.</p>
 
 <p><strong>Expected performance:</strong> A 3B model on a single H100 with FP8 can process classification requests with sub-50ms TTFT and generate 5-10 output tokens in under 20ms. At this scale, the bottleneck shifts from GPU compute to network overhead and routing latency.</p>
 
@@ -1025,13 +1087,13 @@ In a well-designed RAG system, the system prompt and retrieval template form a c
 
 <p>Teams naturally progress through stages of inference stack complexity. Understanding where you are on this curve prevents both premature optimization and unnecessary suffering.</p>
 
-<p><strong>Stage 1 &mdash; Single instance:</strong> One vLLM pod, one model, a Kubernetes Service in front of it. No routing intelligence, no autoscaling, no disaggregation. This handles proof-of-concept and low-traffic internal tools. Operational overhead: minimal. Performance ceiling: one GPU's worth of throughput.</p>
+<p><strong>Stage 1, Single instance:</strong> One vLLM pod, one model, a Kubernetes Service in front of it. No routing intelligence, no autoscaling, no disaggregation. This handles proof-of-concept and low-traffic internal tools. Operational overhead: minimal. Performance ceiling: one GPU's worth of throughput.</p>
 
-<p><strong>Stage 2 &mdash; Replicated with smart routing:</strong> Multiple vLLM replicas behind an EPP. Cache-aware routing, load balancing, basic health checking. This is where most teams should start for production traffic. Adding the EPP to a replicated deployment typically improves TTFT by 40-70% for multi-turn workloads at nearly zero additional GPU cost. The improvement comes from routing intelligence, not more hardware.</p>
+<p><strong>Stage 2, Replicated with smart routing:</strong> Multiple vLLM replicas behind an EPP. Cache-aware routing, load balancing, basic health checking. This is where most teams should start for production traffic. Adding the EPP to a replicated deployment typically improves TTFT by 40-70% for multi-turn workloads at nearly zero additional GPU cost. The improvement comes from routing intelligence, not more hardware.</p>
 
-<p><strong>Stage 3 &mdash; Observable and scalable:</strong> Prometheus metrics, Grafana dashboards, HPA autoscaling on inference-specific metrics. This is the minimum viable production stack. You can now see what is happening, react to traffic changes, and diagnose issues without guessing.</p>
+<p><strong>Stage 3, Observable and scalable:</strong> Prometheus metrics, Grafana dashboards, HPA autoscaling on inference-specific metrics. This is the minimum viable production stack. You can now see what is happening, react to traffic changes, and diagnose issues without guessing.</p>
 
-<p><strong>Stage 4 &mdash; Disaggregated and specialized:</strong> Separate prefill and decode pools, KV cache transfer, specialized routing. This is for teams with latency targets that cannot be met with a unified pool. The operational complexity roughly doubles, but the latency improvement for long-context workloads can be 3-5x.</p>
+<p><strong>Stage 4, Disaggregated and specialized:</strong> Separate prefill and decode pools, KV cache transfer, specialized routing. This is for teams with latency targets that cannot be met with a unified pool. The operational complexity roughly doubles, but the latency improvement for long-context workloads can be 3-5x.</p>
 
 <div class="callout-amber callout">
 <strong><span class="callout-icon">&#9888;</span> When to stop adding complexity</strong>
@@ -1132,7 +1194,7 @@ If you're still on Phase 1 after 6 months, you're leaving money on the table. A 
 
 <h3>Phase 2: Add EPP for cache-aware routing</h3>
 
-<p><strong>Trigger:</strong> You scale to multiple replicas and notice that TTFT varies wildly between requests, or you start serving multi-turn conversations and realize each turn is re-computing the full context. <strong>What you gain:</strong> The EPP tracks KV cache state across all replicas and routes requests to the pod with the longest matching cached prefix. For multi-turn workloads, this is typically the single biggest performance improvement available &mdash; often larger than upgrading GPU hardware. <strong>What you risk:</strong> The EPP is an additional component that needs to be healthy for routing to work. If it goes down, you fall back to default Kubernetes routing (functional, but not cache-aware).</p>
+<p><strong>Trigger:</strong> You scale to multiple replicas and notice that TTFT varies wildly between requests, or you start serving multi-turn conversations and realize each turn is re-computing the full context. <strong>What you gain:</strong> The EPP tracks KV cache state across all replicas and routes requests to the pod with the longest matching cached prefix. For multi-turn workloads, this is typically the single biggest performance improvement available, often larger than upgrading GPU hardware. <strong>What you risk:</strong> The EPP is an additional component that needs to be healthy for routing to work. If it goes down, you fall back to default Kubernetes routing (functional, but not cache-aware).</p>
 
 <h3>Phase 3: Add monitoring and alerting</h3>
 
@@ -1152,34 +1214,117 @@ If you're still on Phase 1 after 6 months, you're leaving money on the table. A 
 
 <hr class="section-divider">
 
-<!-- ───────── 7. Comparison ───────── -->
-<h2 id="comparison">7. Comparison with Alternative Stacks</h2>
+<!-- ───────── 7. Migration Horror Stories ───────── -->
+<h2 id="horror-stories">7. Migration Horror Stories: Lessons Learned the Hard Way</h2>
 
-<p>Let me be blunt here. If you are running on Kubernetes, llm-d is the answer. Full stop. No other stack gives you cache-aware cross-replica routing, LoRA multi-tenancy, and prefill/decode disaggregation as composable, Kubernetes-native primitives. But you deserve to understand why, so let's walk through the alternatives honestly.</p>
+<p>Theory is clean. Production is not. The migration path described above looks smooth on paper, but every team that has walked it has encountered sharp edges. These three scenarios are composites drawn from real-world incidents. They illustrate the kinds of failures that don't show up in architecture diagrams but absolutely show up in your pager alerts.</p>
+
+<h3>Horror Story #1: The Silent KV Cache Regression</h3>
+
+<div class="glass-card">
+<h4>Scenario: KV cache format incompatibility during vLLM version upgrade</h4>
+
+<p>A fintech team was running vLLM v0.4.x on a production chatbot handling 50,000 conversations per day. Their prefix cache hit rate was a healthy 72%, and TTFT on multi-turn conversations averaged 140ms after the first turn. They upgraded to vLLM v0.5.x on a Thursday afternoon to pick up a memory efficiency improvement.</p>
+
+<p>Everything looked fine. The pods started, health checks passed, requests were flowing. But the KV cache format had changed between versions, and the rolling update meant that new pods could not reuse cached prefixes computed by old pods. During the 45-minute rollout window, cache hit rate dropped to 8%. TTFT spiked to 680ms. The Prometheus dashboards showed the regression clearly, but the on-call engineer was watching error rates (which stayed at zero) and request counts (which stayed normal). The latency spike was only noticed when a product manager complained that "the chatbot feels slow today."</p>
+
+<p><strong>The deeper problem:</strong> The team had alerts on error rates and throughput but not on cache hit rate or TTFT percentiles. The upgrade was functionally correct; every request got a valid response. But the performance characteristics changed silently because the new binary's KV cache layout was incompatible with the old binary's cached prefixes.</p>
+
+<p><strong>The fix:</strong> Three changes prevented recurrence. First, they added alerts on prefix cache hit rate with a threshold at 50% (well above their normal 70-75% baseline). Second, they added alerts on p95 TTFT with a threshold at 300ms. Third, they changed their rollout procedure: new vLLM versions now deploy to a canary replica first, run for 30 minutes while cache metrics stabilize, and only proceed to full rollout if cache hit rate and TTFT remain within baseline ranges. The total engineering time to implement these safeguards was about two days.</p>
+</div>
+
+<h3>Horror Story #2: The Configuration Drift Deploy</h3>
+
+<div class="glass-card">
+<h4>Scenario: Staging/production config mismatch causes 4x latency regression on deploy day</h4>
+
+<p>An e-commerce platform ran a RAG-powered product search assistant. The staging environment had been performing well for weeks: p95 TTFT of 320ms, throughput of 180 requests per second. On deploy day, they promoted the staging configuration to production. Latency immediately jumped to 1,400ms p95. GPU utilization dropped from 78% to 31%. The team spent four hours debugging before finding the root cause.</p>
+
+<p>The staging environment used <code>gpu_memory_utilization: 0.92</code>, which left enough GPU memory for the KV cache to hold approximately 800 concurrent sequences. The production environment's base configuration (set months earlier by a different team member) had <code>gpu_memory_utilization: 0.70</code>, which cut the KV cache capacity nearly in half. With fewer cache slots available, the EPP couldn't maintain session affinity because cached prefixes were being evicted before the next conversation turn arrived. Cache hit rate dropped from 65% to 12%. Every request was doing a full prefill from scratch.</p>
+
+<p>Making things worse, the staging environment used <code>max_model_len: 8192</code> while production used the default (model's full context length, 32768). This meant production reserved 4x more memory per sequence slot for potential long contexts that never actually arrived, further reducing the number of concurrent sequences the KV cache could support.</p>
+
+<p><strong>The fix:</strong> The team implemented three changes. First, they version-controlled all vLLM configuration parameters in a shared Helm values file with environment-specific overrides, eliminating the possibility of invisible divergence. Second, they added a pre-deploy validation step that diffs staging and production configs and flags any parameter mismatches for explicit review. Third, they added a Grafana dashboard panel specifically for "KV cache capacity versus utilization" that makes memory allocation issues immediately visible. The entire investigation and fix took about a week of engineering time, most of which was spent understanding the subtle interaction between <code>gpu_memory_utilization</code>, <code>max_model_len</code>, and effective cache capacity.</p>
+</div>
+
+<h3>Horror Story #3: The LoRA Adapter Mismatch</h3>
+
+<div class="glass-card">
+<h4>Scenario: LoRA adapter weight format mismatch causes silent output degradation</h4>
+
+<p>A healthcare company served four LoRA adapters on a shared Llama 3.1 70B base model: one for clinical note summarization, one for patient intake triage, one for medical coding (ICD-10), and one for insurance prior authorization. The medical coding adapter was retrained on a new dataset and the updated weights were pushed to the model registry. Within an hour, the medical coding outputs went from 94% accuracy on their test suite to 23%. But the model wasn't erroring. It was producing valid ICD-10 codes. They were just the wrong codes.</p>
+
+<p>The root cause was a mismatch between the LoRA adapter's target modules and the base model's expected layer names. The retraining pipeline used an updated version of the training framework that named attention layers differently (<code>q_proj</code> and <code>v_proj</code> versus the expected <code>self_attn.q_proj</code> and <code>self_attn.v_proj</code>). vLLM loaded the adapter without errors, but the adapter weights were being applied to the wrong layers, effectively producing a model that was neither the base model nor the fine-tuned model but something in between. The outputs were syntactically valid (they looked like ICD-10 codes) but semantically wrong.</p>
+
+<p>The failure was caught only because a medical coder on the team happened to review a batch of outputs and noticed that knee replacement surgeries were being coded as dental procedures. There was no automated quality check on adapter outputs, no A/B comparison between adapter versions, and no validation that adapter weights were being applied to the expected layers.</p>
+
+<p><strong>The fix:</strong> The team implemented a comprehensive adapter lifecycle process. First, every adapter now includes a test suite of 50 known-good input/output pairs that must pass before the adapter is promoted to production. Second, they added a pre-load validation step in their deployment pipeline that verifies adapter target modules match the base model's layer names exactly. Third, new adapter versions deploy to a shadow replica first, where outputs are compared against the previous version. If the output divergence exceeds a configured threshold (measured by embedding similarity), the deployment is halted automatically. Fourth, they pinned their training framework version and added CI checks that flag any changes to layer naming conventions. The total investment was about two weeks of engineering time, but it prevented a recurrence of what could have been a patient safety issue.</p>
+</div>
+
+<div class="callout-red callout">
+<strong><span class="callout-icon">&#9888;</span> Common thread</strong>
+All three horror stories share the same pattern: the system continued to function (no errors, no crashes) while producing degraded results. Traditional monitoring (error rates, uptime, throughput) caught none of them. The lesson is clear. Inference-specific observability is not optional. You need to monitor cache hit rates, TTFT percentiles, output quality metrics, and configuration consistency. The failure mode of inference systems is rarely "it stops working." It is almost always "it keeps working, just worse."
+</div>
+
+<hr class="section-divider">
+
+<!-- ───────── 8. Deep Comparison ───────── -->
+<h2 id="comparison">8. Deep Comparison with Alternative Stacks</h2>
+
+<p>Let me be blunt here. If you are running on Kubernetes, llm-d is the answer. Full stop. No other stack gives you cache-aware cross-replica routing, LoRA multi-tenancy, and prefill/decode disaggregation as composable, Kubernetes-native primitives. But you deserve to understand why, so let's walk through the alternatives honestly and in depth.</p>
 
 <h3>TensorRT-LLM + Triton Inference Server</h3>
 
 <p>NVIDIA's native stack delivers the highest single-GPU performance on NVIDIA hardware. TensorRT-LLM compiles models into optimized CUDA kernels with aggressive operator fusion, and Triton provides a mature model-serving framework with dynamic batching, model versioning, and ensemble pipelines.</p>
 
-<p><strong>Where it wins:</strong> Raw inference speed on NVIDIA GPUs, especially for models that benefit from FP8 quantization and custom CUDA kernels. The performance gap is real, typically 10-25% higher throughput per GPU compared to vLLM for supported models.</p>
+<p><strong>Where it wins:</strong> Raw inference speed on NVIDIA GPUs, especially for models that benefit from FP8 quantization and custom CUDA kernels. The performance gap is real, typically 10-25% higher throughput per GPU compared to vLLM for supported models. Triton also has a mature model management story with versioning, A/B testing, and ensemble pipelines that chain multiple models together. For organizations deeply invested in the NVIDIA ecosystem with dedicated MLOps teams, this stack offers the tightest possible integration with NVIDIA hardware capabilities.</p>
 
-<p><strong>Where it falls short:</strong> TensorRT-LLM requires model compilation, which adds minutes to hours to the deployment pipeline and makes rapid model iteration difficult. Triton's routing is not KV-cache-aware &mdash; it does dynamic batching within a single instance but does not understand cross-replica cache state. The stack is NVIDIA-only, which is a meaningful limitation as AMD GPUs become more available and cost-competitive. Multi-tenant LoRA serving requires manual configuration rather than dynamic routing. If you want the TRT-LLM speed advantage with intelligent routing, you're building significant custom infrastructure yourself.</p>
+<p><strong>Where it falls short:</strong> TensorRT-LLM requires model compilation, which adds minutes to hours to the deployment pipeline and makes rapid model iteration difficult. The compilation step also means you cannot hot-swap models or adapters without recompilation; every LoRA adapter change requires a new compilation cycle. Triton's routing is not KV-cache-aware. It does dynamic batching within a single instance but does not understand cross-replica cache state. The stack is NVIDIA-only, which is a meaningful limitation as AMD GPUs (MI300X in particular) become more available and cost-competitive in cloud environments. Multi-tenant LoRA serving requires manual configuration rather than dynamic routing. If you want the TRT-LLM speed advantage with intelligent routing, you're building significant custom infrastructure yourself.</p>
+
+<p><strong>Community and ecosystem:</strong> NVIDIA has significant resources behind TensorRT-LLM, but the project operates under NVIDIA's proprietary development model. Community contributions are limited compared to open-source alternatives. Issue resolution depends on NVIDIA's internal prioritization. The Triton ecosystem is mature, with strong documentation and examples, but it is designed around NVIDIA's hardware assumptions.</p>
+
+<p><strong>Production readiness:</strong> High for single-instance deployments on NVIDIA hardware. Medium for multi-replica orchestrated deployments, where you need to bring your own routing, scaling, and cache management. The Triton Kubernetes operator exists but provides basic orchestration rather than inference-aware routing.</p>
+
+<div class="callout callout">
+<strong><span class="callout-icon">&#128161;</span> When to choose TRT-LLM over llm-d</strong>
+If you are (a) running exclusively on NVIDIA hardware, (b) serving a single model without LoRA adapters, (c) optimizing for maximum single-GPU throughput above all else, and (d) willing to accept longer deployment cycles for the compilation step, TRT-LLM can deliver 10-25% better raw throughput. But the moment you need multi-replica routing, LoRA multi-tenancy, or multi-vendor GPU support, the advantage evaporates.
+</div>
 
 <h3>SGLang</h3>
 
-<p>SGLang is a strong inference engine with excellent prefix caching (RadixAttention) and structured generation support. It particularly shines for workloads that involve constrained decoding &mdash; JSON output, grammar-guided generation, and fill-in-the-middle tasks.</p>
+<p>SGLang is a strong inference engine with excellent prefix caching (RadixAttention) and structured generation support. It particularly shines for workloads that involve constrained decoding: JSON output, grammar-guided generation, and fill-in-the-middle tasks.</p>
 
-<p><strong>Where it wins:</strong> Structured output performance, prefix caching efficiency within a single instance, and developer ergonomics for prompt programming patterns.</p>
+<p><strong>Where it wins:</strong> Structured output performance, prefix caching efficiency within a single instance, and developer ergonomics for prompt programming patterns. SGLang's RadixAttention provides arguably the best single-instance prefix caching implementation available, organizing cached prefixes in a radix tree that enables efficient longest-prefix matching. For workloads that are primarily single-instance and involve heavy structured generation (JSON schema enforcement, regex-constrained output, grammar-guided decoding), SGLang can outperform vLLM meaningfully. The programming model is also elegant, with first-class support for prompt composition, branching, and constrained generation.</p>
 
-<p><strong>Where it falls short:</strong> SGLang is primarily a single-process inference engine. It does not provide distributed orchestration, cross-replica cache-aware routing, Kubernetes-native deployment primitives, or autoscaling. For production deployments with multiple replicas, you need to build the routing and scaling layer yourself or integrate with an external orchestrator. Great engine, no platform.</p>
+<p><strong>Where it falls short:</strong> SGLang is primarily a single-process inference engine. It does not provide distributed orchestration, cross-replica cache-aware routing, Kubernetes-native deployment primitives, or autoscaling. For production deployments with multiple replicas, you need to build the routing and scaling layer yourself or integrate with an external orchestrator. There is no equivalent of the EPP for cross-replica cache coordination. When you scale to multiple SGLang instances, each instance maintains its own independent radix tree, and there is no mechanism to route a request to the instance that holds the relevant cached prefix. You lose the primary advantage of RadixAttention the moment you need more than one replica. Great engine, no platform.</p>
+
+<p><strong>Community and ecosystem:</strong> SGLang has a vibrant research community, with regular contributions from academic groups and active development. However, the community is smaller than vLLM's, and production deployment tooling (Helm charts, Kubernetes operators, monitoring integrations) is less mature. Most SGLang deployments in production use custom deployment scripts rather than standardized infrastructure-as-code.</p>
+
+<p><strong>Production readiness:</strong> High for single-instance workloads, especially those involving structured generation. Low-medium for multi-replica production deployments, where the absence of distributed orchestration, routing intelligence, and operational tooling means significant custom engineering is required.</p>
 
 <h3>Ray Serve + vLLM</h3>
 
 <p>Ray Serve wraps vLLM in Ray's distributed computing framework, adding autoscaling, model multiplexing, and integration with the broader Ray ML ecosystem (Ray Train, Ray Data). This is a natural fit for teams already invested in Ray for training and data processing.</p>
 
-<p><strong>Where it wins:</strong> Integration with Ray's ML pipeline tools, model composition (chaining models, pre/post-processing), and autoscaling across heterogeneous resources.</p>
+<p><strong>Where it wins:</strong> Integration with Ray's ML pipeline tools, model composition (chaining models, pre/post-processing), and autoscaling across heterogeneous resources. If your organization already uses Ray for distributed training, data processing, or hyperparameter tuning, Ray Serve provides a unified control plane that spans the entire ML lifecycle from training to serving. Ray's model multiplexing allows serving multiple models from a single deployment, and its resource management can handle heterogeneous GPU types within a single cluster. The autoscaling story is also mature, with support for scaling based on custom metrics and sophisticated placement strategies.</p>
 
-<p><strong>Where it falls short:</strong> Ray adds significant memory and CPU overhead for its distributed runtime. More importantly, Ray Serve's routing is not inference-aware &mdash; it does not understand KV cache state, prefix overlap, or LoRA adapter locality. Routing decisions are based on generic load metrics, not the inference-specific signals that determine actual latency. For teams not already using Ray, the learning curve and operational overhead are substantial. You're paying for a general-purpose distributed computing framework when what you need is an inference-aware routing layer.</p>
+<p><strong>Where it falls short:</strong> Ray adds significant memory and CPU overhead for its distributed runtime. A Ray cluster requires head nodes, worker nodes, the Global Control Store (GCS), and the Ray dashboard, all consuming resources that could otherwise serve inference requests. More importantly, Ray Serve's routing is not inference-aware. It does not understand KV cache state, prefix overlap, or LoRA adapter locality. Routing decisions are based on generic load metrics (queue depth, replica count), not the inference-specific signals that determine actual latency. For teams not already using Ray, the learning curve and operational overhead are substantial. You're paying for a general-purpose distributed computing framework when what you need is an inference-aware routing layer. Ray's failure modes are also complex; a GCS failure can cascade across the entire cluster in ways that are difficult to diagnose without deep Ray expertise.</p>
+
+<p><strong>Community and ecosystem:</strong> Ray has a large, active community backed by Anyscale. Documentation is extensive, and there are many examples of production Ray deployments. However, the intersection of "Ray Serve" and "LLM inference at scale" is still relatively niche. Most production Ray Serve + vLLM deployments are at organizations that were already Ray shops, not organizations that chose Ray specifically for inference serving.</p>
+
+<p><strong>Production readiness:</strong> High if your team already has Ray expertise and infrastructure. Medium otherwise. The learning curve for Ray operations (debugging GCS issues, understanding placement groups, tuning autoscaling policies) is steep, and these skills are orthogonal to inference serving expertise. KubeRay provides Kubernetes integration, but it adds another layer of operational complexity on top of Ray's own complexity.</p>
+
+<h3>Triton Inference Server (standalone)</h3>
+
+<p>Triton can also be deployed as a standalone model server without TensorRT-LLM, serving models in ONNX, TensorFlow SavedModel, or PyTorch formats. In this configuration, it functions as a general-purpose model server with dynamic batching, model versioning, and ensemble support.</p>
+
+<p><strong>Where it wins:</strong> Multi-framework model serving. If you need to serve a mix of LLMs, vision models, embedding models, and traditional ML models from a single infrastructure, Triton's multi-backend support is genuinely useful. It can serve an ONNX embedding model, a PyTorch classification model, and a vLLM-based LLM from the same deployment, chained together in an ensemble pipeline. The model repository pattern (versioned model artifacts in shared storage) provides clean model lifecycle management. Health checking, readiness probing, and model loading/unloading are well-implemented.</p>
+
+<p><strong>Where it falls short:</strong> When used specifically for LLM inference, standalone Triton offers no advantages over vLLM and several disadvantages. It does not implement PagedAttention, continuous batching for autoregressive generation, or prefix caching. Its dynamic batching is designed for fixed-shape tensor inputs, not variable-length token sequences. For LLM workloads, Triton is essentially a container that runs vLLM or TRT-LLM as a backend, adding a layer of indirection without adding inference-specific routing intelligence. The Kubernetes operator provides basic pod management but not cache-aware routing or LoRA-aware scheduling.</p>
+
+<p><strong>Community and ecosystem:</strong> Triton has a large user base in the traditional ML serving space (recommendation systems, vision models, tabular ML). The LLM-specific community is smaller and largely overlaps with the TRT-LLM community. Documentation is thorough but assumes familiarity with NVIDIA's model repository structure and configuration format.</p>
+
+<p><strong>Production readiness:</strong> High for mixed-model serving workloads. For LLM-specific workloads, it adds operational overhead without adding inference-specific value. If your primary workload is LLM serving and you don't need multi-framework model support, deploying Triton as a wrapper around vLLM adds complexity without proportional benefit.</p>
 
 <h3>Ollama</h3>
 
@@ -1187,7 +1332,7 @@ If you're still on Phase 1 after 6 months, you're leaving money on the table. A 
 
 <p><strong>Where it wins:</strong> Developer experience, local development workflow, ease of setup.</p>
 
-<p><strong>Where it falls short:</strong> Ollama is not designed for production serving. It lacks multi-replica support, cache-aware routing, autoscaling, GPU sharing, LoRA adapter routing, and the monitoring and observability primitives that production workloads require. Using Ollama in production is like using SQLite as your production database &mdash; it works until it does not, and the failure mode is sudden. Don't do it.</p>
+<p><strong>Where it falls short:</strong> Ollama is not designed for production serving. It lacks multi-replica support, cache-aware routing, autoscaling, GPU sharing, LoRA adapter routing, and the monitoring and observability primitives that production workloads require. Using Ollama in production is like using SQLite as your production database; it works until it does not, and the failure mode is sudden. Don't do it.</p>
 
 <h3>llm-d</h3>
 
@@ -1250,15 +1395,109 @@ If you're still on Phase 1 after 6 months, you're leaving money on the table. A 
       <td>Excellent</td>
       <td>Excellent (vLLM)</td>
     </tr>
+    <tr>
+      <td>Structured output</td>
+      <td>Via vLLM</td>
+      <td>Via TRT-LLM</td>
+      <td>Best-in-class</td>
+      <td>Via vLLM</td>
+    </tr>
+    <tr>
+      <td>Multi-framework</td>
+      <td>LLM-focused</td>
+      <td>Multi-backend (Triton)</td>
+      <td>LLM-focused</td>
+      <td>Via Ray ecosystem</td>
+    </tr>
+    <tr>
+      <td>Operational complexity</td>
+      <td>Medium (K8s required)</td>
+      <td>High (compilation + ops)</td>
+      <td>Low (single process)</td>
+      <td>High (Ray cluster)</td>
+    </tr>
   </tbody>
 </table>
 
 <hr class="section-divider">
 
-<!-- ───────── 8. Decision Checklist ───────── -->
-<h2 id="decision-checklist">8. Decision Checklist for Enterprises</h2>
+<!-- ───────── 9. TCO Comparison ───────── -->
+<h2 id="tco">9. Total Cost of Ownership Across Stacks</h2>
 
-<p>Before committing to an inference architecture, work through these ten questions. Each one maps to a specific architectural decision. If you cannot answer a question, that is itself a finding &mdash; it means you need to gather more information before you can make an informed decision.</p>
+<p>Choosing an inference stack is not just a performance decision; it is a cost decision. The total cost of ownership includes GPU compute costs, engineering time for setup and maintenance, operational overhead for day-to-day running, and any licensing or vendor lock-in considerations. Here is how the major stacks compare across these dimensions for a representative production deployment: a 70B model serving 100 requests per second with a 500ms p95 TTFT target.</p>
+
+<table class="comparison-table">
+  <thead>
+    <tr>
+      <th>Cost Dimension</th>
+      <th>llm-d</th>
+      <th>TRT-LLM + Triton</th>
+      <th>SGLang</th>
+      <th>Ray Serve + vLLM</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>GPU Compute</td>
+      <td>Baseline (8 H100s). Cache-aware routing reduces effective GPU need by 20-40%.</td>
+      <td>~15-25% fewer GPUs for raw throughput, but no cross-replica cache savings.</td>
+      <td>Similar to llm-d per-instance. No cross-replica cache savings at scale.</td>
+      <td>Similar to llm-d per-instance. Ray runtime adds ~5-10% CPU/memory overhead.</td>
+    </tr>
+    <tr>
+      <td>Engineering Setup</td>
+      <td>2-4 weeks. Kubernetes familiarity assumed. Helm charts and docs available.</td>
+      <td>4-8 weeks. Model compilation pipeline, Triton config, custom routing layer.</td>
+      <td>1-2 weeks for single instance. 6-10 weeks with custom routing/scaling.</td>
+      <td>3-6 weeks. Ray cluster setup, KubeRay, Ray Serve config, custom metrics.</td>
+    </tr>
+    <tr>
+      <td>Ongoing Ops</td>
+      <td>0.5-1 FTE. Standard K8s ops + inference-specific dashboards.</td>
+      <td>1-2 FTE. Compilation pipeline, NVIDIA-specific debugging, custom routing.</td>
+      <td>0.25-0.5 FTE per instance. Scales linearly; no shared orchestration.</td>
+      <td>1-1.5 FTE. Ray cluster ops + inference ops (two distinct skill sets).</td>
+    </tr>
+    <tr>
+      <td>Licensing</td>
+      <td>Fully open source (Apache 2.0). CNCF governed.</td>
+      <td>TRT-LLM: Apache 2.0. Triton: BSD. NVIDIA hardware required.</td>
+      <td>Fully open source (Apache 2.0).</td>
+      <td>Ray: Apache 2.0. Anyscale managed offering is commercial.</td>
+    </tr>
+    <tr>
+      <td>Vendor Lock-in</td>
+      <td>Low. Multi-vendor GPU support. Kubernetes standard APIs.</td>
+      <td>High. NVIDIA GPU lock-in. Compiled models not portable.</td>
+      <td>Low. Portable across GPU vendors.</td>
+      <td>Medium. Ray ecosystem lock-in. Transferable skills are limited.</td>
+    </tr>
+    <tr>
+      <td>Scaling Efficiency</td>
+      <td>High. Cache-aware routing improves efficiency as replicas increase.</td>
+      <td>Medium. Linear scaling, no cross-replica intelligence.</td>
+      <td>Low at multi-replica scale. Each instance is independent.</td>
+      <td>Medium. Ray autoscaling is capable but not inference-optimized.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout-green callout">
+<strong><span class="callout-icon">&#128176;</span> The hidden cost: cross-replica routing</strong>
+The TCO difference between stacks widens significantly at scale. At 2 replicas, the difference in routing efficiency is minor. At 8 or more replicas, llm-d's cache-aware routing can reduce effective GPU requirements by 20-40% for workloads with prefix reuse (chatbots, RAG, multi-turn agents). For a deployment of 16 H100 GPUs at roughly $2.50/GPU-hour in the cloud, a 30% efficiency gain from routing alone saves approximately $105,000 per year. That saving dwarfs the engineering cost of deploying the EPP.
+</div>
+
+<div class="callout-amber callout">
+<strong><span class="callout-icon">&#9888;</span> TCO caveat</strong>
+These estimates assume a Kubernetes-native deployment environment. If your organization does not already run Kubernetes, the cost of establishing Kubernetes expertise and infrastructure must be factored into the llm-d TCO. For organizations starting from zero Kubernetes experience, Ray Serve or standalone SGLang may have lower initial TCO despite higher long-term operational costs, because they defer the Kubernetes investment. However, most organizations at the scale where LLM inference matters are already running Kubernetes for other workloads.
+</div>
+
+<hr class="section-divider">
+
+<!-- ───────── 10. Decision Checklist ───────── -->
+<h2 id="decision-checklist">10. Decision Checklist for Enterprises</h2>
+
+<p>Before committing to an inference architecture, work through these ten questions. Each one maps to a specific architectural decision. If you cannot answer a question, that is itself a finding: it means you need to gather more information before you can make an informed decision.</p>
 
 <ul class="checklist">
   <li>
@@ -1335,10 +1574,10 @@ If you're still on Phase 1 after 6 months, you're leaving money on the table. A 
 
 <hr class="section-divider">
 
-<!-- ───────── 9. Conclusion ───────── -->
-<h2 id="conclusion">9. Conclusion</h2>
+<!-- ───────── 11. Conclusion ───────── -->
+<h2 id="conclusion">11. Conclusion</h2>
 
-<p>Here's what I need you to take away from this post: there is no universally correct inference stack. But there is a <em>very short list</em> of practical architectures that cover the vast majority of production use cases. Your model size and your latency target get you 80% of the way to the right answer. The other three dimensions &mdash; traffic shape, GPU budget, and ops maturity &mdash; refine the details.</p>
+<p>Here's what I need you to take away from this post: there is no universally correct inference stack. But there is a <em>very short list</em> of practical architectures that cover the vast majority of production use cases. Your model size and your latency target get you 80% of the way to the right answer. The other three dimensions (traffic shape, GPU budget, and ops maturity) refine the details.</p>
 
 <p>If you're on Kubernetes, llm-d gives you the components to build the right architecture from Kubernetes-native primitives. Start with vLLM and the EPP. Add Prometheus. Add autoscaling. That's Stage 3, and it handles most production workloads. Only add disaggregation when your measurements demand it. Each step should be triggered by evidence, not aspiration.</p>
 
