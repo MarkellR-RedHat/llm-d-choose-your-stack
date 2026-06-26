@@ -86,6 +86,12 @@ a:hover{color:var(--primary);text-decoration:underline}
     radial-gradient(ellipse 60% 40% at 20% 80%,rgba(139,92,246,0.08) 0%,transparent 50%),
     radial-gradient(ellipse 60% 40% at 80% 80%,rgba(6,182,212,0.06) 0%,transparent 50%);
   pointer-events:none;
+  animation:heroGradientShift 8s ease-in-out infinite alternate;
+}
+@keyframes heroGradientShift{
+  0%{opacity:1;filter:hue-rotate(0deg)}
+  50%{opacity:0.85;filter:hue-rotate(8deg)}
+  100%{opacity:1;filter:hue-rotate(-5deg)}
 }
 .hero-grid{
   position:absolute;inset:0;opacity:0.03;
@@ -102,6 +108,66 @@ a:hover{color:var(--primary);text-decoration:underline}
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
 }
 .hero p{font-size:clamp(1rem,2vw,1.15rem);color:var(--text-secondary);max-width:620px;margin:0 auto 36px;line-height:1.7}
+
+.hero-buttons{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-bottom:40px}
+
+/* I'm Feeling Lucky button */
+.btn-lucky{
+  background:linear-gradient(135deg,#f59e0b,#ef4444,#ec4899,#8b5cf6,#3b82f6);
+  background-size:300% 300%;
+  animation:luckyGradient 4s ease infinite;
+  color:#fff;font-weight:700;font-size:0.95rem;
+  padding:14px 32px;border:none;border-radius:var(--radius);
+  cursor:pointer;position:relative;overflow:hidden;
+  font-family:var(--font-body);
+  transition:transform 0.2s ease, box-shadow 0.2s ease;
+  display:inline-flex;align-items:center;gap:10px;
+}
+.btn-lucky:hover{
+  transform:translateY(-2px) scale(1.03);
+  box-shadow:0 6px 24px rgba(139,92,246,0.4);
+}
+.btn-lucky:active{transform:translateY(0) scale(0.98)}
+@keyframes luckyGradient{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+.dice-icon{display:inline-block;font-size:1.3rem;transition:transform 0.3s ease}
+.btn-lucky:hover .dice-icon{animation:diceRoll 0.6s ease}
+@keyframes diceRoll{
+  0%{transform:rotate(0deg) scale(1)}
+  25%{transform:rotate(90deg) scale(1.2)}
+  50%{transform:rotate(180deg) scale(1)}
+  75%{transform:rotate(270deg) scale(1.2)}
+  100%{transform:rotate(360deg) scale(1)}
+}
+
+/* Lucky overlay animation */
+.lucky-overlay{
+  position:fixed;inset:0;z-index:9998;
+  background:rgba(10,14,23,0.92);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  animation:luckyFadeIn 0.3s ease;
+}
+@keyframes luckyFadeIn{from{opacity:0}to{opacity:1}}
+.lucky-dice{
+  font-size:6rem;
+  animation:luckyDiceSpin 1.2s cubic-bezier(0.4,0,0.2,1);
+}
+@keyframes luckyDiceSpin{
+  0%{transform:rotate(0deg) scale(0.5);opacity:0}
+  30%{transform:rotate(360deg) scale(1.3);opacity:1}
+  60%{transform:rotate(720deg) scale(1)}
+  100%{transform:rotate(1080deg) scale(1);opacity:1}
+}
+.lucky-text{
+  font-family:var(--font-display);font-size:1.4rem;font-weight:700;
+  color:var(--text);margin-top:20px;
+  animation:luckyTextIn 0.5s ease 0.4s both;
+}
+@keyframes luckyTextIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
 .hero-stats{display:flex;justify-content:center;gap:48px;flex-wrap:wrap;margin-top:24px}
 .hero-stat{text-align:center}
 .hero-stat .num{font-family:var(--font-display);font-size:2.2rem;font-weight:900;color:#fff;
@@ -164,6 +230,16 @@ a:hover{color:var(--primary);text-decoration:underline}
 .btn-lg{padding:14px 32px;font-size:0.95rem}
 .btn-icon{width:36px;height:36px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:8px}
 
+/* Generate Architecture button glow */
+.btn-generate-arch{
+  animation:btnPulseGlow 2s ease-in-out infinite;
+}
+.btn-generate-arch:disabled{animation:none}
+@keyframes btnPulseGlow{
+  0%,100%{box-shadow:0 0 8px rgba(16,185,129,0.2)}
+  50%{box-shadow:0 0 24px rgba(16,185,129,0.5),0 0 48px rgba(16,185,129,0.2)}
+}
+
 /* ====================================================================
    Wizard: Progress Bar
    ==================================================================== */
@@ -180,7 +256,7 @@ a:hover{color:var(--primary);text-decoration:underline}
   cursor:pointer;flex-shrink:0;
 }
 .progress-dot:hover{border-color:var(--primary);color:var(--primary-light)}
-.progress-line{flex:1;height:2px;background:var(--border);margin:0;transition:background var(--transition)}
+.progress-line{flex:1;height:2px;background:var(--border);margin:0;transition:background 0.5s ease}
 .wizard-progress-step.active .progress-dot{
   background:var(--primary);border-color:var(--primary);color:#fff;
   box-shadow:0 0 0 4px var(--primary-glow),0 0 20px var(--primary-glow);
@@ -232,6 +308,33 @@ a:hover{color:var(--primary);text-decoration:underline}
 .results-header h2{font-family:var(--font-display);font-size:clamp(1.6rem,4vw,2.4rem);font-weight:900;margin-bottom:8px;
   background:linear-gradient(135deg,#fff,var(--primary-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .results-header p{color:var(--text-secondary);font-size:1rem;max-width:640px;margin:0 auto}
+
+/* Confidence badge */
+.confidence-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  margin:16px auto 0;padding:8px 20px;border-radius:100px;
+  background:linear-gradient(135deg,rgba(16,185,129,0.12),rgba(16,185,129,0.04));
+  border:1px solid rgba(16,185,129,0.3);
+  font-family:var(--font-display);font-weight:700;font-size:0.88rem;
+  color:var(--green);
+}
+.confidence-badge .conf-pct{font-size:1.1rem}
+.confidence-badge .conf-dot{
+  width:8px;height:8px;border-radius:50%;background:var(--green);
+  animation:confPulse 1.5s ease-in-out infinite;
+}
+@keyframes confPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
+
+/* Why this stack */
+.why-stack{
+  max-width:720px;margin:20px auto 0;padding:20px 28px;
+  background:linear-gradient(135deg,rgba(59,130,246,0.06),rgba(139,92,246,0.04));
+  border:1px solid rgba(59,130,246,0.15);border-radius:var(--radius);
+  font-size:0.92rem;line-height:1.7;color:var(--text-secondary);
+  text-align:left;
+}
+.why-stack strong{color:var(--primary-light);font-weight:700}
+
 .results-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:40px}
 .summary-chip{
   background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
@@ -279,29 +382,37 @@ a:hover{color:var(--primary);text-decoration:underline}
 }
 
 /* ====================================================================
-   Config Tabs
+   Config Tabs — IDE Dark Theme
    ==================================================================== */
-.config-tabs{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:0;background:var(--surface-alt);border-radius:var(--radius) var(--radius) 0 0;padding:6px 6px 0;border:1px solid var(--border);border-bottom:none}
+.config-tabs{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:0;background:#1e1e2e;border-radius:var(--radius) var(--radius) 0 0;padding:6px 6px 0;border:1px solid #313244;border-bottom:none}
 .config-tab{
   font-family:var(--font-body);font-weight:600;font-size:0.8rem;
   padding:10px 16px;border:none;background:transparent;
-  color:var(--text-muted);cursor:pointer;border-radius:8px 8px 0 0;
+  color:#6c7086;cursor:pointer;border-radius:8px 8px 0 0;
   transition:all var(--transition);
 }
-.config-tab:hover{color:var(--text-secondary);background:rgba(255,255,255,0.03)}
-.config-tab.active{background:var(--bg-alt);color:var(--primary-light);border:1px solid var(--border);border-bottom:1px solid var(--bg-alt);margin-bottom:-1px}
+.config-tab:hover{color:#a6adc8;background:rgba(255,255,255,0.03)}
+.config-tab.active{background:#11111b;color:#89b4fa;border:1px solid #313244;border-bottom:1px solid #11111b;margin-bottom:-1px}
 .config-content{
-  background:#0c1222;color:#cdd6f4;border-radius:0 0 var(--radius) var(--radius);
-  border:1px solid var(--border);border-top:1px solid var(--border);overflow:hidden;
+  background:#11111b;color:#cdd6f4;border-radius:0 0 var(--radius) var(--radius);
+  border:1px solid #313244;border-top:1px solid #313244;overflow:hidden;
   position:relative;margin-bottom:24px;
 }
 .config-pane{display:none;padding:24px;overflow-x:auto}
 .config-pane.active{display:block}
 .config-pane pre{font-family:var(--font-mono);font-size:0.8rem;line-height:1.7;white-space:pre;margin:0;color:#cdd6f4}
-.config-pane .comment{color:#6c7086}
+/* Catppuccin Mocha-inspired syntax highlighting */
+.config-pane .comment{color:#6c7086;font-style:italic}
 .config-pane .key{color:#89b4fa}
 .config-pane .value{color:#a6e3a1}
 .config-pane .string{color:#f9e2af}
+.config-pane .keyword{color:#cba6f7}
+.config-pane .number{color:#fab387}
+.config-pane .bool{color:#94e2d5}
+.config-pane .cmd{color:#f38ba8}
+.config-pane .flag{color:#89dceb}
+.config-pane .arg{color:#a6e3a1}
+.config-pane .line-num{color:#45475a;user-select:none;display:inline-block;width:3ch;text-align:right;margin-right:16px}
 .copy-btn{
   position:absolute;top:10px;right:10px;
   background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.5);
@@ -334,8 +445,39 @@ a:hover{color:var(--primary);text-decoration:underline}
 .compare-chip.selected{border-color:var(--primary);background:var(--primary-bg);color:var(--primary-light)}
 .compare-chip.selected.c2{border-color:var(--green);background:var(--green-bg);color:var(--green)}
 .compare-chip.selected.c3{border-color:var(--orange);background:var(--orange-bg);color:var(--orange)}
-.radar-container{display:flex;justify-content:center;margin-bottom:40px}
+.radar-container{display:flex;justify-content:center;margin-bottom:40px;position:relative}
 .radar-container canvas{max-width:500px;width:100%}
+
+/* Winner badge */
+.compare-winner{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:10px 24px;border-radius:100px;
+  background:linear-gradient(135deg,rgba(245,158,11,0.15),rgba(245,158,11,0.05));
+  border:1px solid rgba(245,158,11,0.35);
+  font-family:var(--font-display);font-weight:700;font-size:0.92rem;
+  color:#f59e0b;margin-bottom:12px;
+}
+.compare-winner .trophy{font-size:1.2rem}
+
+/* Compare summary */
+.compare-summary{
+  text-align:center;margin-bottom:32px;
+  padding:16px 24px;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  font-size:0.9rem;color:var(--text-secondary);line-height:1.6;
+}
+.compare-summary strong{color:var(--text);font-weight:700}
+
+/* Radar tooltip */
+.radar-tooltip{
+  position:absolute;
+  background:#1e1e2e;border:1px solid #313244;border-radius:8px;
+  padding:8px 14px;font-size:0.8rem;color:#cdd6f4;
+  pointer-events:none;z-index:100;
+  box-shadow:0 4px 16px rgba(0,0,0,0.5);
+  white-space:nowrap;display:none;
+}
+
 .compare-table{width:100%;border-collapse:collapse;margin-bottom:32px}
 .compare-table th,.compare-table td{
   padding:14px 18px;text-align:left;border-bottom:1px solid var(--border);
@@ -486,6 +628,7 @@ a:hover{color:var(--primary);text-decoration:underline}
   .gc-specs{grid-template-columns:1fr}
   .compare-table{font-size:0.78rem}
   .compare-table th,.compare-table td{padding:10px 12px}
+  .hero-buttons{flex-direction:column;align-items:center}
 }
 </style>
 </head>
@@ -517,11 +660,17 @@ a:hover{color:var(--primary);text-decoration:underline}
   <div class="hero-content">
     <h1>Choose Your Own Inference Stack</h1>
     <p>Plan, compare, and build production-ready LLM serving architectures with llm-d. Answer a few questions or explore on your own -- expert-level infrastructure decisions in minutes, not weeks.</p>
+    <div class="hero-buttons">
+      <button class="btn btn-primary btn-lg" onclick="switchToTab('wizard');document.getElementById('tab-wizard').scrollIntoView({behavior:'smooth'})">Start the Wizard</button>
+      <button class="btn-lucky" onclick="feelingLucky()">
+        <span class="dice-icon">&#127922;</span> I'm Feeling Lucky
+      </button>
+    </div>
     <div class="hero-stats">
-      <div class="hero-stat"><div class="num">5</div><div class="label">Decision Dimensions</div></div>
-      <div class="hero-stat"><div class="num">200+</div><div class="label">Configurations</div></div>
-      <div class="hero-stat"><div class="num">3</div><div class="label">Reference Stacks</div></div>
+      <div class="hero-stat"><div class="num">&lt; 5 min</div><div class="label">Time to Architecture</div></div>
+      <div class="hero-stat"><div class="num">3</div><div class="label">Battle-Tested Stacks</div></div>
       <div class="hero-stat"><div class="num">0</div><div class="label">Vendor Lock-in</div></div>
+      <div class="hero-stat"><div class="num">100%</div><div class="label">Open Source</div></div>
     </div>
   </div>
 </section>
@@ -561,7 +710,12 @@ a:hover{color:var(--primary);text-decoration:underline}
       <p>Select 2 or 3 reference architectures to compare across cost, latency, throughput, complexity, and scalability.</p>
     </div>
     <div class="compare-selector" id="compareSelector"></div>
-    <div class="radar-container"><canvas id="radarCanvas" width="500" height="500"></canvas></div>
+    <div id="compareWinnerArea" style="text-align:center"></div>
+    <div id="compareSummaryArea"></div>
+    <div class="radar-container">
+      <canvas id="radarCanvas" width="500" height="500"></canvas>
+      <div class="radar-tooltip" id="radarTooltip"></div>
+    </div>
     <div id="compareTableWrap"></div>
   </div>
 </div>
@@ -753,6 +907,7 @@ let showingResults = false;
 
 // Compare state
 let compareSelections = [];
+let radarHitAreas = [];
 
 // Builder state
 let canvasNodes = [];
@@ -773,6 +928,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initCompare();
   initBuilder();
   initGallery();
+  initRadarTooltip();
 });
 
 
@@ -881,7 +1037,7 @@ function renderQuestion() {
       '<div class="wizard-nav">' +
         '<button class="btn btn-secondary" onclick="prevStep()" ' + (currentStep === 0 ? 'style="visibility:hidden"' : '') + '>&larr; Back</button>' +
         (currentStep === QUESTIONS.length - 1
-          ? '<button class="btn btn-success btn-lg" onclick="generateResults()" ' + (!selected ? 'disabled' : '') + '>Generate Architecture &rarr;</button>'
+          ? '<button class="btn btn-success btn-lg btn-generate-arch" onclick="generateResults()" ' + (!selected ? 'disabled' : '') + '>Generate Architecture &rarr;</button>'
           : '<button class="btn btn-primary" onclick="nextStep()" ' + (!selected ? 'disabled' : '') + '>Next &rarr;</button>'
         ) +
       '</div>' +
@@ -936,6 +1092,53 @@ function loadPresetIntoWizard(presetId) {
   buildProgress();
   updateProgress();
   setTimeout(() => showResults(), 150);
+}
+
+
+/* ====================================================================
+   5b. "I'M FEELING LUCKY"
+   ==================================================================== */
+
+function feelingLucky() {
+  // Pick random valid answers for each question
+  const randomSelections = {};
+  QUESTIONS.forEach(q => {
+    const opts = q.options;
+    randomSelections[q.id] = opts[Math.floor(Math.random() * opts.length)].value;
+  });
+
+  // Bias toward production-ready combos: if we picked 405B with 1-2 GPUs, fix it
+  if (randomSelections.modelSize === '405b' && (randomSelections.gpuBudget === '1_2' || randomSelections.gpuBudget === '4_8')) {
+    randomSelections.gpuBudget = '64_plus';
+  }
+  if (randomSelections.modelSize === '70b' && randomSelections.gpuBudget === '1_2') {
+    randomSelections.gpuBudget = '4_8';
+  }
+  if (randomSelections.modelSize === '34b' && randomSelections.gpuBudget === '1_2') {
+    randomSelections.gpuBudget = '4_8';
+  }
+
+  // Show the dice overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'lucky-overlay';
+  overlay.innerHTML =
+    '<div class="lucky-dice">&#127922;</div>' +
+    '<div class="lucky-text">Rolling your production stack...</div>';
+  document.body.appendChild(overlay);
+
+  setTimeout(() => {
+    overlay.style.transition = 'opacity 0.4s ease';
+    overlay.style.opacity = '0';
+    setTimeout(() => overlay.remove(), 400);
+
+    // Apply selections and show results
+    selections = randomSelections;
+    currentStep = QUESTIONS.length;
+    switchToTab('wizard');
+    buildProgress();
+    updateProgress();
+    showResults();
+  }, 1400);
 }
 
 
@@ -1095,6 +1298,72 @@ function getConfig() {
 
 
 /* ====================================================================
+   6b. CONFIDENCE & REASONING ENGINE
+   ==================================================================== */
+
+function computeConfidence(s) {
+  // Compute a confidence score based on how well the selections fit together
+  let score = 80; // baseline
+
+  // Model/GPU budget alignment
+  if (s.modelSize === '7b' && (s.gpuBudget === '1_2' || s.gpuBudget === '4_8')) score += 5;
+  if (s.modelSize === '70b' && (s.gpuBudget === '16_32' || s.gpuBudget === '64_plus')) score += 5;
+  if (s.modelSize === '405b' && s.gpuBudget === '64_plus') score += 5;
+  if (s.modelSize === '405b' && s.gpuBudget === '1_2') score -= 15;
+
+  // Platform/complexity alignment
+  if (s.platform === 'openshift' && (s.gpuBudget === '16_32' || s.gpuBudget === '64_plus')) score += 3;
+  if (s.platform === 'cloud_managed' && s.gpuBudget === '1_2') score += 3;
+
+  // Latency/budget alignment
+  if (s.latencyTarget === 'p50_100' && s.gpuBudget !== '1_2') score += 3;
+  if (s.latencyTarget === 'best_effort' && s.gpuBudget === '1_2') score += 2;
+
+  // Multi-tenancy alignment
+  if (s.multiTenancy === 'single_single' && s.gpuBudget === '1_2') score += 2;
+  if (s.multiTenancy === 'multi_lora' && s.gpuBudget !== '1_2') score += 2;
+
+  return Math.min(98, Math.max(72, score));
+}
+
+function buildWhyThisStack(s, cfg) {
+  const parts = [];
+  const model = MODEL_DB[s.modelSize];
+
+  // First sentence: what we are deploying and why
+  if (s.modelSize === '7b' || s.modelSize === '13b') {
+    parts.push('A ' + model.label + ' model fits comfortably on ' + cfg.totalGPUs + ' ' + cfg.gpu.label + (cfg.totalGPUs > 1 ? 's' : '') + ', keeping your costs low while delivering solid performance.');
+  } else if (s.modelSize === '405b') {
+    parts.push('A ' + model.label + ' model demands FP8 quantization and 8-way tensor parallelism across ' + cfg.totalGPUs + ' ' + cfg.gpu.label + 's -- this is the only configuration that works at this scale.');
+  } else {
+    parts.push(model.label + ' on ' + cfg.totalGPUs + ' ' + cfg.gpu.label + (cfg.totalGPUs > 1 ? 's' : '') + ' with TP=' + cfg.tp + ' gives you the memory headroom needed for production KV caches at full sequence length.');
+  }
+
+  // Second sentence: routing and latency
+  if (cfg.disaggregate) {
+    parts.push('Disaggregated prefill/decode serving is the right call for your latency SLO -- it separates compute-bound prefill from memory-bound decode so neither blocks the other.');
+  } else if (s.latencyTarget === 'best_effort') {
+    parts.push('With best-effort latency, we skip disaggregation and prefix caching overhead in favor of raw throughput.');
+  } else {
+    parts.push(cfg.routingStrategy + ' routing with prefix caching targets your latency SLO while maximizing cache hit rates across replicas.');
+  }
+
+  // Third sentence: platform-specific
+  if (s.platform === 'openshift') {
+    parts.push('OpenShift operators handle the full lifecycle -- GPU drivers, service mesh, and monitoring -- out of the box.');
+  } else if (s.platform === 'cloud_managed') {
+    parts.push('Managed Kubernetes lets the cloud provider handle GPU node provisioning, so you focus on the model, not the infra.');
+  } else if (s.platform === 'bare_metal') {
+    parts.push('Bare metal gives you the lowest latency and most control, at the cost of managing drivers and networking yourself.');
+  } else {
+    parts.push('Self-managed Kubernetes gives you full control over the stack from GPU drivers to Gateway API routing.');
+  }
+
+  return parts.join(' ');
+}
+
+
+/* ====================================================================
    7. SHOW RESULTS
    ==================================================================== */
 
@@ -1113,12 +1382,17 @@ function showResults() {
 
   const costStr = '$' + cfg.monthlyCostLow.toLocaleString() + ' - $' + cfg.monthlyCostHigh.toLocaleString() + '/mo';
 
+  const confidence = computeConfidence(s);
+  const whyText = buildWhyThisStack(s, cfg);
+
   let html = '<div class="results-panel">';
 
-  // Header
+  // Header -- opinionated and confident
   html += '<div class="results-header">' +
-    '<h2>Your Recommended Architecture</h2>' +
-    '<p>Optimized for ' + cfg.model.label + ' on ' + cfg.gpu.label + ' with ' + cfg.routingStrategy + ' routing</p>' +
+    '<h2>Deploy This. Period.</h2>' +
+    '<p>Based on your answers, this is exactly what you should run. Not a suggestion -- a recommendation backed by production experience with ' + cfg.model.label + ' on ' + cfg.gpu.label + '.</p>' +
+    '<div class="confidence-badge"><span class="conf-dot"></span><span class="conf-pct">' + confidence + '%</span> match for your profile</div>' +
+    '<div class="why-stack"><strong>Why this stack?</strong> ' + whyText + '</div>' +
   '</div>';
 
   // Summary chips
@@ -1376,7 +1650,7 @@ function buildConfigTabs(cfg) {
   const modelSlugLower = modelSlug.toLowerCase();
   const gpuResource = cfg.gpuType === 'mi300x' ? 'amd.com/gpu' : 'nvidia.com/gpu';
 
-  // ── 1. Helm values.yaml
+  // -- 1. Helm values.yaml
   let helm = [];
   helm.push('# llm-d Helm values.yaml');
   helm.push('# Generated for ' + modelSlug + ' on ' + cfg.gpu.label);
@@ -1452,7 +1726,7 @@ function buildConfigTabs(cfg) {
 
   configData['Helm values.yaml'] = helm.join('\n');
 
-  // ── 2. vLLM Engine Args
+  // -- 2. vLLM Engine Args
   let vllm = [];
   vllm.push('# vLLM Engine Arguments');
   vllm.push('# Paste into your vLLM deployment command or container args');
@@ -1479,7 +1753,7 @@ function buildConfigTabs(cfg) {
 
   configData['vLLM Args'] = vllm.join('\n');
 
-  // ── 3. EPP Config
+  // -- 3. EPP Config
   let epp = [];
   epp.push('# llm-d Endpoint Picker Plugin (EPP) Configuration');
   epp.push('');
@@ -1536,7 +1810,7 @@ function buildConfigTabs(cfg) {
 
   configData['EPP Config'] = epp.join('\n');
 
-  // ── 4. Monitoring
+  // -- 4. Monitoring
   let mon = [];
   let ttftThreshold = '2';
   if (s.latencyTarget === 'p50_500') ttftThreshold = '0.5';
@@ -1589,7 +1863,7 @@ function buildConfigTabs(cfg) {
 
   configData['Monitoring'] = mon.join('\n');
 
-  // ── 5. HPA
+  // -- 5. HPA
   let hpa = [];
   hpa.push('# HorizontalPodAutoscaler');
   hpa.push('apiVersion: autoscaling/v2');
@@ -1627,7 +1901,7 @@ function buildConfigTabs(cfg) {
 
   configData['HPA'] = hpa.join('\n');
 
-  // ── 6. Quick Start shell commands
+  // -- 6. Quick Start shell commands
   let shell = [];
   shell.push('#!/bin/bash');
   shell.push('# Quick-start deployment commands for ' + modelSlug);
@@ -1672,7 +1946,7 @@ function buildConfigTabs(cfg) {
     const pane = document.createElement('div');
     pane.className = 'config-pane' + (i===0?' active':'');
     pane.id = 'pane-' + k.replace(/[^a-zA-Z0-9]/g,'');
-    pane.innerHTML = '<pre>' + highlightYaml(configData[k]) + '</pre>';
+    pane.innerHTML = '<pre>' + highlightConfig(configData[k], k) + '</pre>';
     contentEl.appendChild(pane);
   });
 }
@@ -1688,15 +1962,41 @@ function switchConfigTab(key, btn) {
   if (copyBtn) { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }
 }
 
-function highlightYaml(text) {
-  return text
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/^(#.*)$/gm, '<span class="comment">$1</span>')
-    .replace(/^(\s*)([\w\.\-\/]+)(:)/gm, '$1<span class="key">$2</span>$3')
-    .replace(/:\s+"([^"]+)"/g, ': <span class="string">"$1"</span>')
-    .replace(/:\s+(\d+\.?\d*)\s*$/gm, ': <span class="value">$1</span>')
-    .replace(/:\s+(true|false)\s*$/gm, ': <span class="value">$1</span>')
-    .replace(/:\s+(latest|Critical|Standard|warning|critical|info)\s*$/gm, ': <span class="value">$1</span>');
+function highlightConfig(text, tabName) {
+  // Escape HTML
+  let escaped = text
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;');
+
+  if (tabName === 'Quick Start' || tabName === 'vLLM Args') {
+    // Shell / command syntax highlighting
+    escaped = escaped
+      .replace(/^(#.*)$/gm, '<span class="comment">$1</span>')
+      .replace(/\b(python|helm|kubectl|curl)\b/g, '<span class="cmd">$1</span>')
+      .replace(/(\s)(--[\w-]+)/g, '$1<span class="flag">$2</span>')
+      .replace(/(\s)(-[a-zA-Z]\b)/g, '$1<span class="flag">$2</span>')
+      .replace(/"([^"]+)"/g, '<span class="string">"$1"</span>')
+      .replace(/'([^']+)'/g, '<span class="string">\'$1\'</span>')
+      .replace(/\b(\d+)\b(?![^<]*>)/g, '<span class="number">$1</span>');
+  } else {
+    // YAML syntax highlighting
+    escaped = escaped
+      .replace(/^(#.*)$/gm, '<span class="comment">$1</span>')
+      .replace(/^(\s*)([\w\.\-\/]+)(:)/gm, '$1<span class="key">$2</span>$3')
+      .replace(/:\s+"([^"]+)"/g, ': <span class="string">"$1"</span>')
+      .replace(/:\s+'([^']+)'/g, ': <span class="string">\'$1\'</span>')
+      .replace(/:\s+(\d+\.?\d*)\s*$/gm, ': <span class="number">$1</span>')
+      .replace(/:\s+(true|false)\s*$/gm, ': <span class="bool">$1</span>')
+      .replace(/:\s+(latest|Critical|Standard|warning|critical|info)\s*$/gm, ': <span class="keyword">$1</span>')
+      .replace(/^(---)\s*$/gm, '<span class="keyword">$1</span>');
+  }
+
+  // Add line numbers
+  const lines = escaped.split('\n');
+  return lines.map((line, i) =>
+    '<span class="line-num">' + (i + 1) + '</span>' + line
+  ).join('\n');
 }
 
 
@@ -1805,6 +2105,9 @@ function updateCompareUI() {
   // Draw radar
   drawRadarChart();
 
+  // Build winner + summary
+  buildCompareWinnerAndSummary();
+
   // Build table
   buildCompareTable();
 }
@@ -1820,6 +2123,7 @@ function drawRadarChart() {
   ctx.clearRect(0, 0, W, H);
 
   const dims = ['Cost Efficiency', 'Latency', 'Throughput', 'Simplicity', 'Scalability'];
+  const dimKeys = ['cost', 'latency', 'throughput', 'complexity', 'scalability'];
   const angles = dims.map((_, i) => (i * 2 * Math.PI / dims.length) - Math.PI/2);
 
   // Draw grid circles
@@ -1837,6 +2141,12 @@ function drawRadarChart() {
     ctx.strokeStyle = 'rgba(255,255,255,0.06)';
     ctx.lineWidth = 1;
     ctx.stroke();
+
+    // Draw scale numbers on the first axis
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.font = '10px "Red Hat Mono", monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(level.toString(), cx - 8, cy - r + 4);
   }
 
   // Draw axes
@@ -1864,6 +2174,9 @@ function drawRadarChart() {
     {fill:'rgba(245,158,11,0.15)', stroke:'#f59e0b'},
   ];
 
+  // Store hit areas for tooltip
+  radarHitAreas = [];
+
   compareSelections.forEach((id, si) => {
     const preset = STACK_PRESETS[id];
     if (!preset) return;
@@ -1886,15 +2199,24 @@ function drawRadarChart() {
     ctx.lineWidth = 2.5;
     ctx.stroke();
 
-    // Draw dots
+    // Draw dots and store hit areas
     vals.forEach((v, i) => {
       const r = R * v / 10;
       const x = cx + Math.cos(angles[i]) * r;
       const y = cy + Math.sin(angles[i]) * r;
       ctx.beginPath();
-      ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.arc(x, y, 5, 0, Math.PI * 2);
       ctx.fillStyle = c.stroke;
       ctx.fill();
+      ctx.strokeStyle = '#0a0e17';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      radarHitAreas.push({
+        x: x, y: y, radius: 14,
+        label: preset.name + ': ' + dims[i] + ' = ' + v + '/10',
+        color: c.stroke,
+      });
     });
   });
 
@@ -1914,6 +2236,109 @@ function drawRadarChart() {
     ctx.fillText(preset.name, lx + 18, legendY + 3);
     lx += 140;
   });
+}
+
+function initRadarTooltip() {
+  const canvas = document.getElementById('radarCanvas');
+  const tooltip = document.getElementById('radarTooltip');
+  if (!canvas || !tooltip) return;
+
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const mx = (e.clientX - rect.left) * scaleX;
+    const my = (e.clientY - rect.top) * scaleY;
+
+    let found = null;
+    for (const area of radarHitAreas) {
+      const dx = mx - area.x;
+      const dy = my - area.y;
+      if (dx*dx + dy*dy <= area.radius * area.radius) {
+        found = area;
+        break;
+      }
+    }
+
+    if (found) {
+      tooltip.textContent = found.label;
+      tooltip.style.display = 'block';
+      tooltip.style.borderColor = found.color;
+      // Position relative to radar container
+      const containerRect = canvas.parentElement.getBoundingClientRect();
+      tooltip.style.left = (e.clientX - containerRect.left + 12) + 'px';
+      tooltip.style.top = (e.clientY - containerRect.top - 28) + 'px';
+    } else {
+      tooltip.style.display = 'none';
+    }
+  });
+
+  canvas.addEventListener('mouseleave', () => {
+    tooltip.style.display = 'none';
+  });
+}
+
+function buildCompareWinnerAndSummary() {
+  const winnerArea = document.getElementById('compareWinnerArea');
+  const summaryArea = document.getElementById('compareSummaryArea');
+  if (!winnerArea || !summaryArea) return;
+
+  if (compareSelections.length < 2) {
+    winnerArea.innerHTML = '';
+    summaryArea.innerHTML = '';
+    return;
+  }
+
+  const selected = compareSelections.map(id => STACK_PRESETS[id]).filter(Boolean);
+  const dimKeys = ['cost', 'latency', 'throughput', 'complexity', 'scalability'];
+  const dimNames = ['Cost Efficiency', 'Latency', 'Throughput', 'Simplicity', 'Scalability'];
+
+  // Calculate total scores
+  const totals = selected.map(p => {
+    return dimKeys.reduce((sum, k) => sum + p.scores[k], 0);
+  });
+
+  // Find winner
+  let winnerIdx = 0;
+  totals.forEach((t, i) => { if (t > totals[winnerIdx]) winnerIdx = i; });
+  const winner = selected[winnerIdx];
+
+  winnerArea.innerHTML = '<div class="compare-winner"><span class="trophy">&#127942;</span> Overall Winner: ' + winner.name + ' (' + totals[winnerIdx] + '/50 total score)</div>';
+
+  // Build head-to-head summary for pairs
+  if (selected.length === 2) {
+    const a = selected[0], b = selected[1];
+    let aWins = 0, bWins = 0;
+    const aWinDims = [], bWinDims = [];
+    dimKeys.forEach((k, i) => {
+      if (a.scores[k] > b.scores[k]) { aWins++; aWinDims.push(dimNames[i]); }
+      else if (b.scores[k] > a.scores[k]) { bWins++; bWinDims.push(dimNames[i]); }
+    });
+
+    let summaryText = '';
+    if (aWins > bWins) {
+      summaryText = '<strong>' + a.name + '</strong> beats <strong>' + b.name + '</strong> in ' + aWins + ' of 5 categories (' + aWinDims.join(', ') + ').';
+      if (bWins > 0) summaryText += ' ' + b.name + ' wins in ' + bWinDims.join(', ') + '.';
+    } else if (bWins > aWins) {
+      summaryText = '<strong>' + b.name + '</strong> beats <strong>' + a.name + '</strong> in ' + bWins + ' of 5 categories (' + bWinDims.join(', ') + ').';
+      if (aWins > 0) summaryText += ' ' + a.name + ' wins in ' + aWinDims.join(', ') + '.';
+    } else {
+      summaryText = '<strong>' + a.name + '</strong> and <strong>' + b.name + '</strong> are tied at ' + aWins + ' categories each.';
+    }
+
+    summaryArea.innerHTML = '<div class="compare-summary">' + summaryText + '</div>';
+  } else if (selected.length === 3) {
+    // Three-way: just show who dominates the most categories
+    const wins = selected.map(() => 0);
+    dimKeys.forEach(k => {
+      let best = 0;
+      selected.forEach((p, i) => { if (p.scores[k] > selected[best].scores[k]) best = i; });
+      wins[best]++;
+    });
+
+    const parts = selected.map((p, i) => '<strong>' + p.name + '</strong>: ' + wins[i] + ' categories').join(' | ');
+    summaryArea.innerHTML = '<div class="compare-summary">Category wins: ' + parts + '</div>';
+  }
 }
 
 function buildCompareTable() {
@@ -1940,8 +2365,16 @@ function buildCompareTable() {
 
   const selected = compareSelections.map(id => STACK_PRESETS[id]).filter(Boolean);
 
+  // Determine overall winner for header badge
+  const dimKeys = ['cost', 'latency', 'throughput', 'complexity', 'scalability'];
+  const totals = selected.map(p => dimKeys.reduce((sum, k) => sum + p.scores[k], 0));
+  let winnerIdx = 0;
+  totals.forEach((t, i) => { if (t > totals[winnerIdx]) winnerIdx = i; });
+
   let html = '<table class="compare-table"><thead><tr><th></th>';
-  selected.forEach(p => { html += '<th>' + p.name + '</th>'; });
+  selected.forEach((p, i) => {
+    html += '<th>' + p.name + (i === winnerIdx ? ' &#127942;' : '') + '</th>';
+  });
   html += '</tr></thead><tbody>';
 
   rows.forEach(row => {
@@ -1959,7 +2392,7 @@ function ratingBar(score) {
   const color = score >= 7 ? '#10b981' : score >= 4 ? '#f59e0b' : '#ef4444';
   return '<div style="display:flex;align-items:center;gap:8px">' +
     '<div style="flex:1;height:6px;background:rgba(255,255,255,0.06);border-radius:3px;max-width:100px">' +
-      '<div style="width:' + pct + '%;height:100%;background:' + color + ';border-radius:3px"></div>' +
+      '<div style="width:' + pct + '%;height:100%;background:' + color + ';border-radius:3px;transition:width 0.5s ease"></div>' +
     '</div>' +
     '<span style="font-family:var(--font-mono);font-size:0.78rem;color:' + color + '">' + score + '/10</span>' +
   '</div>';
