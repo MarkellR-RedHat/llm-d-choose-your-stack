@@ -758,6 +758,363 @@
     .tree-diagram { font-size: 0.7rem; }
   }
 
+  /* ── Key Takeaways ── */
+  .key-takeaways {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.06), rgba(59, 130, 246, 0.06));
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin: 0 0 48px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .key-takeaways::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
+  }
+
+  .key-takeaways-title {
+    font-family: 'Red Hat Display', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--accent-green);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .key-takeaways ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+  }
+
+  .key-takeaways ul li {
+    padding: 10px 16px 10px 40px;
+    position: relative;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    line-height: 1.6;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  .key-takeaways ul li::before {
+    content: '\2713';
+    position: absolute;
+    left: 14px;
+    top: 11px;
+    color: var(--accent-green);
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+
+  /* ── "When to Choose" cards ── */
+  .choose-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 2em 0;
+  }
+
+  .choose-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 24px 24px 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.25s, transform 0.2s;
+  }
+
+  .choose-card:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+  }
+
+  .choose-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+  }
+
+  .choose-card.card-blue::before { background: var(--accent-blue); }
+  .choose-card.card-purple::before { background: var(--accent-purple); }
+  .choose-card.card-green::before { background: var(--accent-green); }
+  .choose-card.card-amber::before { background: var(--accent-amber); }
+  .choose-card.card-red::before { background: var(--accent-red); }
+
+  .choose-card-name {
+    font-family: 'Red Hat Display', sans-serif;
+    font-weight: 800;
+    font-size: 1.05rem;
+    color: var(--text-heading);
+    margin-bottom: 4px;
+  }
+
+  .choose-card-tagline {
+    font-family: 'Red Hat Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 14px;
+  }
+
+  .choose-card-label {
+    font-family: 'Red Hat Display', sans-serif;
+    font-weight: 700;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+    margin-top: 12px;
+  }
+
+  .choose-card-label:first-of-type {
+    margin-top: 0;
+  }
+
+  .choose-card ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .choose-card ul li {
+    font-size: 0.88rem;
+    color: var(--text-primary);
+    line-height: 1.55;
+    padding: 3px 0 3px 18px;
+    position: relative;
+  }
+
+  .choose-card ul li::before {
+    content: '\2022';
+    position: absolute;
+    left: 4px;
+    color: var(--text-secondary);
+  }
+
+  .choose-card .card-verdict {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-subtle);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-heading);
+    line-height: 1.5;
+  }
+
+  /* ── Decision Matrix ── */
+  .decision-matrix {
+    margin: 2em 0;
+  }
+
+  .decision-matrix-title {
+    font-family: 'Red Hat Display', sans-serif;
+    font-weight: 800;
+    font-size: 1.15rem;
+    color: var(--text-heading);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .decision-matrix-subtitle {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+  }
+
+  .matrix-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.85rem;
+    border: 1px solid var(--border-card);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .matrix-table thead th {
+    font-family: 'Red Hat Display', sans-serif;
+    font-weight: 700;
+    text-align: center;
+    padding: 14px 14px;
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--accent-blue);
+    border-bottom: 1px solid var(--border-card);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .matrix-table thead th:first-child {
+    text-align: left;
+  }
+
+  .matrix-table tbody td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border-subtle);
+    vertical-align: middle;
+    color: var(--text-primary);
+    text-align: center;
+  }
+
+  .matrix-table tbody td:first-child {
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-heading);
+    white-space: nowrap;
+  }
+
+  .matrix-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .matrix-table tbody tr:hover {
+    background: rgba(59, 130, 246, 0.04);
+  }
+
+  .rating-high {
+    color: var(--accent-green);
+    font-weight: 700;
+  }
+
+  .rating-med {
+    color: var(--accent-amber);
+    font-weight: 600;
+  }
+
+  .rating-low {
+    color: var(--accent-red);
+    font-weight: 600;
+  }
+
+  .rating-na {
+    color: var(--text-secondary);
+    opacity: 0.5;
+  }
+
+  /* ── Further Reading ── */
+  .further-reading {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 32px;
+    margin: 3em 0 1em;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .further-reading-title {
+    font-family: 'Red Hat Display', sans-serif;
+    font-weight: 800;
+    font-size: 1.15rem;
+    color: var(--text-heading);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .further-reading-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .fr-link {
+    display: block;
+    padding: 16px 20px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    text-decoration: none;
+    transition: border-color 0.25s, background 0.25s;
+  }
+
+  .fr-link:hover {
+    border-color: rgba(59, 130, 246, 0.3);
+    background: rgba(59, 130, 246, 0.04);
+  }
+
+  .fr-link-category {
+    font-family: 'Red Hat Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent-blue);
+    margin-bottom: 6px;
+  }
+
+  .fr-link-title {
+    font-family: 'Red Hat Display', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-heading);
+    margin-bottom: 4px;
+    line-height: 1.35;
+  }
+
+  .fr-link-desc {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  /* ── Section anchor link styles ── */
+  .article h2 .anchor-link,
+  .article h3 .anchor-link {
+    color: var(--text-secondary);
+    opacity: 0;
+    text-decoration: none;
+    font-size: 0.8em;
+    margin-left: 8px;
+    transition: opacity 0.2s;
+    border-bottom: none;
+  }
+
+  .article h2:hover .anchor-link,
+  .article h3:hover .anchor-link {
+    opacity: 0.6;
+  }
+
+  .article h2 .anchor-link:hover,
+  .article h3 .anchor-link:hover {
+    opacity: 1;
+    color: var(--accent-blue);
+    border-bottom: none;
+  }
+
+  @media (max-width: 768px) {
+    .choose-cards { grid-template-columns: 1fr; }
+    .further-reading-grid { grid-template-columns: 1fr; }
+    .key-takeaways { padding: 20px 20px; }
+    .matrix-table { font-size: 0.75rem; }
+    .matrix-table thead th,
+    .matrix-table tbody td { padding: 8px 8px; }
+  }
+
   @media (max-width: 520px) {
     .header-inner { flex-wrap: wrap; }
     .hero-meta { gap: 12px; }
@@ -793,9 +1150,9 @@
   <div class="hero-meta">
     <span class="hero-meta-item">Markell Rawls</span>
     <span class="hero-meta-item"><span class="dot"></span></span>
-    <span class="hero-meta-item">28 min read</span>
+    <span class="hero-meta-item">32 min read</span>
     <span class="hero-meta-item"><span class="dot"></span></span>
-    <span class="hero-meta-item">~5,500 words</span>
+    <span class="hero-meta-item">~7,000 words</span>
     <span class="hero-meta-item"><span class="dot"></span></span>
     <span class="meta-tag">llm-d</span>
   </div>
@@ -813,6 +1170,20 @@
   </ul>
 </div>
 
+<!-- ════════════════════ KEY TAKEAWAYS ════════════════════ -->
+<div class="key-takeaways">
+  <div class="key-takeaways-title">&#10003; Key Takeaways</div>
+  <ul>
+    <li><strong>Model size + latency target = architecture.</strong> These two dimensions alone determine whether you need a simple replicated pool, cache-aware routing, or full prefill/decode disaggregation.</li>
+    <li><strong>The EPP is the highest-ROI component after vLLM itself.</strong> Adding cache-aware routing across replicas cuts TTFT by 40-70% for multi-turn workloads, with near-zero additional GPU cost.</li>
+    <li><strong>Stage 3 is the production sweet spot.</strong> vLLM + EPP + Prometheus + HPA autoscaling handles 80% of real-world production use cases. Most teams should start here, not at Stage 1.</li>
+    <li><strong>Disaggregation is a measured response, not a default.</strong> Only separate prefill and decode pools when profiling proves that long prefill operations block decode on shared GPUs and your TTFT SLO cannot be met otherwise.</li>
+    <li><strong>Inference failures are silent, not loud.</strong> Systems keep returning valid responses while performance degrades. Monitor cache hit rates, TTFT percentiles, and output quality, not just error rates.</li>
+    <li><strong>Cross-replica routing efficiency is the hidden TCO lever.</strong> At 16+ GPUs, cache-aware routing can reduce effective GPU requirements by 20-40%, saving six figures annually at cloud rates.</li>
+    <li><strong>llm-d is uniquely positioned for Kubernetes shops.</strong> No other stack offers cache-aware cross-replica routing, LoRA multi-tenancy, and disaggregation as composable, Kubernetes-native primitives.</li>
+  </ul>
+</div>
+
 <!-- ════════════════════ TABLE OF CONTENTS ════════════════════ -->
 <div class="toc">
   <div class="toc-title">Contents</div>
@@ -825,9 +1196,10 @@
     <li><a href="#migration-paths">Migration Paths: How to Evolve Your Stack</a> <span class="toc-time">~3 min</span></li>
     <li><a href="#horror-stories">Migration Horror Stories: Lessons Learned the Hard Way</a> <span class="toc-time">~3 min</span></li>
     <li><a href="#comparison">Deep Comparison with Alternative Stacks</a> <span class="toc-time">~5 min</span></li>
+    <li><a href="#decision-matrix">Decision Matrix: Choosing Your Stack at a Glance</a> <span class="toc-time">~2 min</span></li>
     <li><a href="#tco">Total Cost of Ownership Across Stacks</a> <span class="toc-time">~2 min</span></li>
     <li><a href="#decision-checklist">Decision Checklist for Enterprises</a> <span class="toc-time">~2 min</span></li>
-    <li><a href="#conclusion">Conclusion</a> <span class="toc-time">~1 min</span></li>
+    <li><a href="#conclusion">Conclusion and Further Reading</a> <span class="toc-time">~1 min</span></li>
   </ol>
 </div>
 
@@ -835,7 +1207,7 @@
 <article class="article">
 
 <!-- ───────── 1. Introduction ───────── -->
-<h2 id="introduction">1. Introduction: The Problem with "Just Deploy It"</h2>
+<h2 id="introduction">1. Introduction: The Problem with "Just Deploy It" <a href="#introduction" class="anchor-link">#</a></h2>
 
 <p>I've watched the same movie play out at dozens of organizations. The proof-of-concept works. A single vLLM instance on a rented GPU handles the demo traffic. Leadership is impressed. Then come the questions that unravel everything: What happens when traffic doubles next Tuesday? How do we give the fraud team their own fine-tuned adapter without doubling GPU spend? Why does time to first token spike when the support team's shift starts? Why is our GPU utilization at 30% even though users are complaining about latency?</p>
 
@@ -850,7 +1222,7 @@
 <hr class="section-divider">
 
 <!-- ───────── 2. Decision Framework ───────── -->
-<h2 id="decision-framework">2. The Decision Framework: Five Dimensions That Define Your Stack</h2>
+<h2 id="decision-framework">2. The Decision Framework: Five Dimensions That Define Your Stack <a href="#decision-framework" class="anchor-link">#</a></h2>
 
 <p>The most common mistake in inference architecture is treating component selection as a shopping list. Teams pick components based on feature comparison charts and end up with a stack that is technically capable of everything but optimized for nothing. Stop doing that. Start with your constraints and work backward to components.</p>
 
@@ -979,7 +1351,7 @@ At fewer than 8 GPUs, spend your engineering time maximizing cache-aware routing
 <hr class="section-divider">
 
 <!-- ───────── 3. Component Deep Dives ───────── -->
-<h2 id="component-deep-dives">3. Component Deep Dives: What You Need and When</h2>
+<h2 id="component-deep-dives">3. Component Deep Dives: What You Need and When <a href="#component-deep-dives" class="anchor-link">#</a></h2>
 
 <p>llm-d is a composable platform, not a monolith. Each component addresses a specific operational need. Here is when you need each one and when you do not.</p>
 
@@ -1029,7 +1401,7 @@ Start with four dashboards: (1) TTFT by percentile, which tells you if users are
 <hr class="section-divider">
 
 <!-- ───────── 4. Stack Patterns ───────── -->
-<h2 id="stack-patterns">4. Stack Patterns by Use Case</h2>
+<h2 id="stack-patterns">4. Stack Patterns by Use Case <a href="#stack-patterns" class="anchor-link">#</a></h2>
 
 <p>Abstract frameworks are useful, but concrete patterns are what teams actually deploy. Here are five production patterns, each with specific architecture choices and the reasoning behind them.</p>
 
@@ -1079,7 +1451,7 @@ In a well-designed RAG system, the system prompt and retrieval template form a c
 <hr class="section-divider">
 
 <!-- ───────── 5. Complexity-Performance Tradeoff ───────── -->
-<h2 id="complexity-performance">5. The Complexity-Performance Tradeoff</h2>
+<h2 id="complexity-performance">5. The Complexity-Performance Tradeoff <a href="#complexity-performance" class="anchor-link">#</a></h2>
 
 <p>Every component in your inference stack adds operational surface area. Each one introduces new failure modes, new configuration knobs, new metrics to monitor, and new on-call runbooks to write. The question is not "does this component improve performance?" (it almost always does) but "does the improvement justify the operational cost for my specific situation?"</p>
 
@@ -1156,7 +1528,7 @@ The "golden path" for 80% of production use cases is Stage 3: replicated vLLM, E
 <hr class="section-divider">
 
 <!-- ───────── 6. Migration Paths ───────── -->
-<h2 id="migration-paths">6. Migration Paths: How to Evolve Your Stack</h2>
+<h2 id="migration-paths">6. Migration Paths: How to Evolve Your Stack <a href="#migration-paths" class="anchor-link">#</a></h2>
 
 <p>The worst way to build an inference platform is to design the final architecture on day one and try to deploy it all at once. The right approach is incremental: start with the simplest architecture that meets your current needs, instrument it, measure it, and add complexity only when measurement shows you need it. Here is the concrete progression.</p>
 
@@ -1215,7 +1587,7 @@ If you're still on Phase 1 after 6 months, you're leaving money on the table. A 
 <hr class="section-divider">
 
 <!-- ───────── 7. Migration Horror Stories ───────── -->
-<h2 id="horror-stories">7. Migration Horror Stories: Lessons Learned the Hard Way</h2>
+<h2 id="horror-stories">7. Migration Horror Stories: Lessons Learned the Hard Way <a href="#horror-stories" class="anchor-link">#</a></h2>
 
 <p>Theory is clean. Production is not. The migration path described above looks smooth on paper, but every team that has walked it has encountered sharp edges. These three scenarios are composites drawn from real-world incidents. They illustrate the kinds of failures that don't show up in architecture diagrams but absolutely show up in your pager alerts.</p>
 
@@ -1269,7 +1641,7 @@ All three horror stories share the same pattern: the system continued to functio
 <hr class="section-divider">
 
 <!-- ───────── 8. Deep Comparison ───────── -->
-<h2 id="comparison">8. Deep Comparison with Alternative Stacks</h2>
+<h2 id="comparison">8. Deep Comparison with Alternative Stacks <a href="#comparison" class="anchor-link">#</a></h2>
 
 <p>Let me be blunt here. If you are running on Kubernetes, llm-d is the answer. Full stop. No other stack gives you cache-aware cross-replica routing, LoRA multi-tenancy, and prefill/decode disaggregation as composable, Kubernetes-native primitives. But you deserve to understand why, so let's walk through the alternatives honestly and in depth.</p>
 
@@ -1421,8 +1793,196 @@ If you are (a) running exclusively on NVIDIA hardware, (b) serving a single mode
 
 <hr class="section-divider">
 
-<!-- ───────── 9. TCO Comparison ───────── -->
-<h2 id="tco">9. Total Cost of Ownership Across Stacks</h2>
+<!-- ───────── 8b. Decision Matrix ───────── -->
+<h2 id="decision-matrix">9. Decision Matrix: Choosing Your Stack at a Glance <a href="#decision-matrix" class="anchor-link">#</a></h2>
+
+<p>The detailed comparison above covers the nuances, but sometimes you need a single table you can screenshot and drop into a Slack thread. This matrix scores each stack across the dimensions that matter most in production.</p>
+
+<div class="decision-matrix">
+  <div class="decision-matrix-title">&#9638; Stack Comparison Matrix</div>
+  <div class="decision-matrix-subtitle">Rated across eight production-critical dimensions. High = strong, Med = adequate, Low = weak or absent.</div>
+  <table class="matrix-table">
+    <thead>
+      <tr>
+        <th>Dimension</th>
+        <th>llm-d</th>
+        <th>TRT-LLM + Triton</th>
+        <th>SGLang</th>
+        <th>Ray Serve + vLLM</th>
+        <th>Ollama</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Cross-replica routing</td>
+        <td><span class="rating-high">High</span></td>
+        <td><span class="rating-low">Low</span></td>
+        <td><span class="rating-low">Low</span></td>
+        <td><span class="rating-low">Low</span></td>
+        <td><span class="rating-na">N/A</span></td>
+      </tr>
+      <tr>
+        <td>Single-GPU throughput</td>
+        <td><span class="rating-high">High</span></td>
+        <td><span class="rating-high">Highest</span></td>
+        <td><span class="rating-high">High</span></td>
+        <td><span class="rating-high">High</span></td>
+        <td><span class="rating-med">Med</span></td>
+      </tr>
+      <tr>
+        <td>LoRA multi-tenancy</td>
+        <td><span class="rating-high">High</span></td>
+        <td><span class="rating-low">Low</span></td>
+        <td><span class="rating-low">Low</span></td>
+        <td><span class="rating-med">Med</span></td>
+        <td><span class="rating-na">N/A</span></td>
+      </tr>
+      <tr>
+        <td>Kubernetes-native ops</td>
+        <td><span class="rating-high">High</span></td>
+        <td><span class="rating-med">Med</span></td>
+        <td><span class="rating-low">Low</span></td>
+        <td><span class="rating-med">Med</span></td>
+        <td><span class="rating-na">N/A</span></td>
+      </tr>
+      <tr>
+        <td>Disaggregation support</td>
+        <td><span class="rating-high">High</span></td>
+        <td><span class="rating-low">Low</span></td>
+        <td><span class="rating-low">Low</span></td>
+        <td><span class="rating-low">Low</span></td>
+        <td><span class="rating-na">N/A</span></td>
+      </tr>
+      <tr>
+        <td>Structured output</td>
+        <td><span class="rating-med">Med</span></td>
+        <td><span class="rating-med">Med</span></td>
+        <td><span class="rating-high">Highest</span></td>
+        <td><span class="rating-med">Med</span></td>
+        <td><span class="rating-low">Low</span></td>
+      </tr>
+      <tr>
+        <td>Multi-vendor GPU</td>
+        <td><span class="rating-high">High</span></td>
+        <td><span class="rating-low">NVIDIA only</span></td>
+        <td><span class="rating-high">High</span></td>
+        <td><span class="rating-high">High</span></td>
+        <td><span class="rating-med">Med</span></td>
+      </tr>
+      <tr>
+        <td>Setup complexity</td>
+        <td><span class="rating-med">Med</span></td>
+        <td><span class="rating-low">High</span></td>
+        <td><span class="rating-high">Low</span></td>
+        <td><span class="rating-low">High</span></td>
+        <td><span class="rating-high">Minimal</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<h3>When to Choose Each Stack</h3>
+
+<p>Each stack has a sweet spot. These quick-reference cards distill the comparison into actionable guidance.</p>
+
+<div class="choose-cards">
+
+  <div class="choose-card card-blue">
+    <div class="choose-card-name">llm-d</div>
+    <div class="choose-card-tagline">The Kubernetes-native inference platform</div>
+    <div class="choose-card-label">Choose when</div>
+    <ul>
+      <li>You run Kubernetes in production</li>
+      <li>You need cache-aware routing across replicas</li>
+      <li>Multiple teams share base models via LoRA adapters</li>
+      <li>You want composable, incremental adoption</li>
+      <li>You need NVIDIA + AMD GPU support</li>
+    </ul>
+    <div class="choose-card-label">Skip when</div>
+    <ul>
+      <li>Your team has zero Kubernetes experience and no plans to adopt it</li>
+      <li>You only need local, single-user inference</li>
+    </ul>
+    <div class="card-verdict">Best for: production Kubernetes environments at any scale, from 2 replicas to 64+ GPUs.</div>
+  </div>
+
+  <div class="choose-card card-purple">
+    <div class="choose-card-name">TensorRT-LLM + Triton</div>
+    <div class="choose-card-tagline">Maximum single-GPU performance on NVIDIA</div>
+    <div class="choose-card-label">Choose when</div>
+    <ul>
+      <li>You are all-in on NVIDIA hardware</li>
+      <li>You serve a single model without LoRA adapters</li>
+      <li>Maximum throughput per GPU is your top priority</li>
+      <li>You have a dedicated MLOps team for compilation pipelines</li>
+    </ul>
+    <div class="choose-card-label">Skip when</div>
+    <ul>
+      <li>You need multi-replica cache-aware routing</li>
+      <li>You want rapid model iteration (compilation adds friction)</li>
+      <li>You need multi-vendor GPU support</li>
+    </ul>
+    <div class="card-verdict">Best for: single-model, NVIDIA-only deployments where 10-25% extra per-GPU throughput justifies longer deploy cycles.</div>
+  </div>
+
+  <div class="choose-card card-green">
+    <div class="choose-card-name">SGLang</div>
+    <div class="choose-card-tagline">Best-in-class structured output engine</div>
+    <div class="choose-card-label">Choose when</div>
+    <ul>
+      <li>Structured generation (JSON, grammar-constrained) is your primary workload</li>
+      <li>You run a single instance or small number of independent instances</li>
+      <li>You value developer ergonomics and prompt programming patterns</li>
+    </ul>
+    <div class="choose-card-label">Skip when</div>
+    <ul>
+      <li>You need multi-replica orchestration or cross-replica routing</li>
+      <li>You need production-grade autoscaling and monitoring out of the box</li>
+    </ul>
+    <div class="card-verdict">Best for: structured output workloads at single-instance scale. Great engine, no platform.</div>
+  </div>
+
+  <div class="choose-card card-amber">
+    <div class="choose-card-name">Ray Serve + vLLM</div>
+    <div class="choose-card-tagline">Unified ML lifecycle from training to serving</div>
+    <div class="choose-card-label">Choose when</div>
+    <ul>
+      <li>Your team already uses Ray for training and data processing</li>
+      <li>You need model composition (chaining, ensembles, pre/post-processing)</li>
+      <li>You manage heterogeneous GPU types in a single cluster</li>
+    </ul>
+    <div class="choose-card-label">Skip when</div>
+    <ul>
+      <li>You do not already have Ray expertise and infrastructure</li>
+      <li>You need inference-aware (KV cache, prefix) routing</li>
+      <li>You want to minimize operational surface area</li>
+    </ul>
+    <div class="card-verdict">Best for: existing Ray shops that want a unified control plane across training and serving.</div>
+  </div>
+
+  <div class="choose-card card-red">
+    <div class="choose-card-name">Ollama</div>
+    <div class="choose-card-tagline">Local dev and single-user experimentation</div>
+    <div class="choose-card-label">Choose when</div>
+    <ul>
+      <li>You need local development and rapid prototyping</li>
+      <li>Single-user, single-machine inference is sufficient</li>
+      <li>You want the simplest possible setup experience</li>
+    </ul>
+    <div class="choose-card-label">Skip when</div>
+    <ul>
+      <li>You are serving production traffic of any kind</li>
+      <li>You need multi-replica, autoscaling, or monitoring</li>
+    </ul>
+    <div class="card-verdict">Best for: developer laptops and experimentation. Not for production. Full stop.</div>
+  </div>
+
+</div>
+
+<hr class="section-divider">
+
+<!-- ───────── 10. TCO Comparison ───────── -->
+<h2 id="tco">10. Total Cost of Ownership Across Stacks <a href="#tco" class="anchor-link">#</a></h2>
 
 <p>Choosing an inference stack is not just a performance decision; it is a cost decision. The total cost of ownership includes GPU compute costs, engineering time for setup and maintenance, operational overhead for day-to-day running, and any licensing or vendor lock-in considerations. Here is how the major stacks compare across these dimensions for a representative production deployment: a 70B model serving 100 requests per second with a 500ms p95 TTFT target.</p>
 
@@ -1494,8 +2054,8 @@ These estimates assume a Kubernetes-native deployment environment. If your organ
 
 <hr class="section-divider">
 
-<!-- ───────── 10. Decision Checklist ───────── -->
-<h2 id="decision-checklist">10. Decision Checklist for Enterprises</h2>
+<!-- ───────── 11. Decision Checklist ───────── -->
+<h2 id="decision-checklist">11. Decision Checklist for Enterprises <a href="#decision-checklist" class="anchor-link">#</a></h2>
 
 <p>Before committing to an inference architecture, work through these ten questions. Each one maps to a specific architectural decision. If you cannot answer a question, that is itself a finding: it means you need to gather more information before you can make an informed decision.</p>
 
@@ -1574,8 +2134,8 @@ These estimates assume a Kubernetes-native deployment environment. If your organ
 
 <hr class="section-divider">
 
-<!-- ───────── 11. Conclusion ───────── -->
-<h2 id="conclusion">11. Conclusion</h2>
+<!-- ───────── 12. Conclusion ───────── -->
+<h2 id="conclusion">12. Conclusion <a href="#conclusion" class="anchor-link">#</a></h2>
 
 <p>Here's what I need you to take away from this post: there is no universally correct inference stack. But there is a <em>very short list</em> of practical architectures that cover the vast majority of production use cases. Your model size and your latency target get you 80% of the way to the right answer. The other three dimensions (traffic shape, GPU budget, and ops maturity) refine the details.</p>
 
@@ -1594,6 +2154,62 @@ These estimates assume a Kubernetes-native deployment environment. If your organ
 </ul>
 
 <p><strong>Stop planning. Start deploying.</strong></p>
+
+<!-- ════════════════════ FURTHER READING ════════════════════ -->
+<div class="further-reading">
+  <div class="further-reading-title">&#128218; Further Reading</div>
+  <div class="further-reading-grid">
+
+    <a class="fr-link" href="https://github.com/llm-d/llm-d" target="_blank" rel="noopener">
+      <div class="fr-link-category">Source Code</div>
+      <div class="fr-link-title">llm-d on GitHub</div>
+      <div class="fr-link-desc">The main repository with architecture docs, deployment guides, and Helm charts.</div>
+    </a>
+
+    <a class="fr-link" href="https://llm-d.ai" target="_blank" rel="noopener">
+      <div class="fr-link-category">Documentation</div>
+      <div class="fr-link-title">llm-d.ai Official Docs</div>
+      <div class="fr-link-desc">Comprehensive documentation covering setup, configuration, and operational best practices.</div>
+    </a>
+
+    <a class="fr-link" href="https://docs.vllm.ai/en/stable/" target="_blank" rel="noopener">
+      <div class="fr-link-category">Inference Engine</div>
+      <div class="fr-link-title">vLLM Documentation</div>
+      <div class="fr-link-desc">The vLLM project docs covering model support, configuration, performance tuning, and API reference.</div>
+    </a>
+
+    <a class="fr-link" href="https://gateway-api.sigs.k8s.io/" target="_blank" rel="noopener">
+      <div class="fr-link-category">Kubernetes</div>
+      <div class="fr-link-title">Gateway API Specification</div>
+      <div class="fr-link-desc">The Kubernetes Gateway API spec that llm-d integrates for traffic management and routing.</div>
+    </a>
+
+    <a class="fr-link" href="https://kserve.github.io/website/" target="_blank" rel="noopener">
+      <div class="fr-link-category">Model Serving</div>
+      <div class="fr-link-title">KServe Documentation</div>
+      <div class="fr-link-desc">Model serving on Kubernetes with autoscaling, canary rollouts, and inference graph support.</div>
+    </a>
+
+    <a class="fr-link" href="https://cloud-native.slack.com/archives/llm-d" target="_blank" rel="noopener">
+      <div class="fr-link-category">Community</div>
+      <div class="fr-link-title">#llm-d on CNCF Slack</div>
+      <div class="fr-link-desc">Join the community channel for questions, architecture discussions, and deployment help.</div>
+    </a>
+
+    <a class="fr-link" href="https://markellr-redhat.github.io/llm-d-content-hub/" target="_blank" rel="noopener">
+      <div class="fr-link-category">Content Hub</div>
+      <div class="fr-link-title">llm-d Content Hub</div>
+      <div class="fr-link-desc">Curated collection of blog posts, talks, demos, and educational resources for llm-d.</div>
+    </a>
+
+    <a class="fr-link" href="../" target="_blank" rel="noopener">
+      <div class="fr-link-category">Interactive Tool</div>
+      <div class="fr-link-title">Choose Your Own Inference Stack</div>
+      <div class="fr-link-desc">Walk through the decision tree interactively and get a tailored architecture recommendation.</div>
+    </a>
+
+  </div>
+</div>
 
 </article>
 </div>
