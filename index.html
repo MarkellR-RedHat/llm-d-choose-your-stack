@@ -23,8 +23,42 @@ html,body{
 html{background:#fbfcfe}
 body{background:#fbfcfe}
 h1,h2,h3,h4,h5,h6{font-family:'Red Hat Display',sans-serif;font-weight:900;color:#0a0f1e}
-::selection{background:#f59e0b;color:#fff}
+::selection{background:#4b2fe0;color:#fff}
 ::-webkit-scrollbar{display:none}
+
+/* ============================================================
+   FAMILY GRADIENT TOKENS + SOFT BLOBS
+   ============================================================ */
+@keyframes gradientSweep{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+.grad-blob{
+  position:fixed;z-index:-1;pointer-events:none;
+  filter:blur(80px);opacity:0.16;
+  border-radius:40% 60% 55% 45% / 55% 45% 60% 40%;
+  animation:blobDrift 32s ease-in-out infinite alternate;
+}
+.grad-blob-1{
+  width:520px;height:520px;top:-160px;left:-120px;
+  background:radial-gradient(circle at 35% 35%,#1f5fe6 0%,#4b2fe0 55%,transparent 75%);
+}
+.grad-blob-2{
+  width:460px;height:460px;bottom:-140px;right:-100px;
+  background:radial-gradient(circle at 60% 45%,#ff3b6b 0%,#8f2bd0 55%,transparent 75%);
+  animation-duration:38s;animation-delay:-12s;
+}
+.grad-blob-3{
+  width:380px;height:380px;top:38%;left:58%;
+  background:radial-gradient(circle at 50% 50%,#8f2bd0 0%,#4b2fe0 60%,transparent 78%);
+  opacity:0.10;animation-duration:44s;animation-delay:-20s;
+}
+@keyframes blobDrift{
+  0%{transform:translate(0,0) rotate(0deg) scale(1)}
+  50%{transform:translate(60px,-40px) rotate(14deg) scale(1.08)}
+  100%{transform:translate(-40px,50px) rotate(-10deg) scale(0.95)}
+}
 
 /* ============================================================
    FLOWING BACKGROUND GRADIENT
@@ -48,10 +82,12 @@ body::before{
    ============================================================ */
 .progress-bar{
   position:fixed;top:0;left:0;height:3px;z-index:1000;
-  background:linear-gradient(90deg,#f59e0b,#f5736c,#3b82f6);
+  background:linear-gradient(160deg,#1f5fe6,#4b2fe0,#8f2bd0,#ff3b6b,#8f2bd0,#4b2fe0,#1f5fe6);
+  background-size:220% 220%;
+  animation:gradientSweep 8s ease-in-out infinite;
   border-radius:0 2px 2px 0;
   transition:width 0.6s cubic-bezier(0.4,0,0.2,1);
-  box-shadow:0 0 8px rgba(245,158,11,0.3);
+  box-shadow:0 0 8px rgba(143,43,208,0.35);
 }
 
 /* ============================================================
@@ -119,7 +155,7 @@ body::before{
 @keyframes scaleIn{from{opacity:0;transform:scale(0.85)}to{opacity:1;transform:scale(1)}}
 @keyframes slideInLeft{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:translateX(0)}}
 @keyframes slideInRight{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
-@keyframes pulseGlow{0%,100%{box-shadow:0 0 20px rgba(245,158,11,0.15)}50%{box-shadow:0 0 40px rgba(245,158,11,0.3)}}
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 20px rgba(143,43,208,0.15)}50%{box-shadow:0 0 40px rgba(143,43,208,0.3)}}
 
 .stagger-1{animation-delay:0.5s !important}
 .stagger-2{animation-delay:0.65s !important}
@@ -129,6 +165,14 @@ body::before{
 .stagger-6{animation-delay:1.25s !important}
 .stagger-7{animation-delay:1.4s !important}
 .stagger-8{animation-delay:1.55s !important}
+
+/* Fallback entrance for staggered elements without a specific rule
+   (later, more specific rules override this with their own animation) */
+.slide.active .stagger-1,.slide.active .stagger-2,.slide.active .stagger-3,
+.slide.active .stagger-4,.slide.active .stagger-5,.slide.active .stagger-6,
+.slide.active .stagger-7,.slide.active .stagger-8{
+  animation:fadeSlideUp 0.5s ease forwards;
+}
 
 /* ============================================================
    CARDS
@@ -169,8 +213,8 @@ body::before{
   transition:all 0.25s ease;color:#6b6560;
 }
 .nav-btn:hover{
-  border-color:#f59e0b;color:#f59e0b;background:#fff;
-  box-shadow:0 4px 20px rgba(245,158,11,0.2);
+  border-color:#4b2fe0;color:#4b2fe0;background:#fff;
+  box-shadow:0 4px 20px rgba(75,47,224,0.2);
 }
 .nav-btn:disabled{opacity:0.3;cursor:default;border-color:#d4cfc9;color:#d4cfc9}
 .nav-btn:disabled:hover{box-shadow:none;background:rgba(255,255,255,0.9)}
@@ -185,11 +229,11 @@ body::before{
   cursor:pointer;transition:all 0.3s ease;padding:0;
 }
 .nav-dot.active{
-  background:#f59e0b;border-color:#f59e0b;
+  background:linear-gradient(135deg,#4b2fe0,#ff3b6b);border-color:transparent;
   width:28px;border-radius:5px;
-  box-shadow:0 0 12px rgba(245,158,11,0.4);
+  box-shadow:0 0 12px rgba(143,43,208,0.4);
 }
-.nav-dot:hover:not(.active){border-color:#f59e0b}
+.nav-dot:hover:not(.active){border-color:#8f2bd0}
 
 /* ============================================================
    HERO BADGE & GRADIENT TEXT
@@ -197,14 +241,16 @@ body::before{
 .hero-badge{
   display:inline-flex;align-items:center;gap:8px;
   padding:6px 16px;
-  background:rgba(245,158,11,0.1);
-  border:1px solid rgba(245,158,11,0.25);
+  background:rgba(75,47,224,0.07);
+  border:1px solid rgba(75,47,224,0.22);
   border-radius:20px;font-size:0.85rem;font-weight:500;
-  color:#b45309;margin-bottom:20px;
+  color:#4b2fe0;margin-bottom:20px;
 }
 .hero-badge img{height:20px;width:20px}
 .hero-gradient-text{
-  background:linear-gradient(135deg,#f59e0b 0%,#f5736c 50%,#3b82f6 100%);
+  background:linear-gradient(160deg,#1f5fe6,#4b2fe0,#8f2bd0,#ff3b6b,#8f2bd0,#4b2fe0,#1f5fe6);
+  background-size:220% 220%;
+  animation:gradientSweep 8s ease-in-out infinite;
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
   background-clip:text;
 }
@@ -338,20 +384,138 @@ body::before{
   cursor:pointer;transition:all 0.25s ease;text-decoration:none;
 }
 .cta-primary{
-  background:linear-gradient(135deg,#f59e0b,#e8890a);color:#fff;
-  box-shadow:0 4px 16px rgba(245,158,11,0.25);
+  background:linear-gradient(135deg,#1f5fe6 0%,#4b2fe0 40%,#8f2bd0 100%);color:#fff;
+  box-shadow:0 4px 16px rgba(75,47,224,0.28);
 }
-.cta-primary:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(245,158,11,0.35)}
+.cta-primary:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(143,43,208,0.38)}
 .cta-secondary{
   background:#ffffff;color:#0a0f1e;border:2px solid rgba(45,42,38,0.1);
 }
-.cta-secondary:hover{border-color:#f59e0b;box-shadow:0 4px 16px rgba(245,158,11,0.1)}
+.cta-secondary:hover{border-color:#8f2bd0;box-shadow:0 4px 16px rgba(143,43,208,0.12)}
 
 /* ============================================================
    SLIDE FOOTER
    ============================================================ */
 .slide-footer{
   margin-top:24px;font-size:0.82rem;color:#a09a94;
+}
+
+/* ============================================================
+   QUIZ (5 questions -> architecture + Helm values)
+   ============================================================ */
+.quiz-shell{max-width:860px;margin:0 auto;text-align:left}
+.quiz-progress{display:flex;align-items:center;margin:0 auto 20px;max-width:480px}
+.qp-dot{
+  width:30px;height:30px;border-radius:50%;flex-shrink:0;
+  border:2px solid #d4cfc9;background:#fff;color:#6b6560;
+  font-family:'Red Hat Display',sans-serif;font-weight:700;font-size:0.78rem;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.qp-dot.active{
+  border-color:transparent;color:#fff;
+  background:linear-gradient(135deg,#4b2fe0,#ff3b6b);
+  box-shadow:0 0 14px rgba(143,43,208,0.35);transform:scale(1.12);
+}
+.qp-dot.done{background:#10b981;border-color:#10b981;color:#fff}
+.qp-line{flex:1;height:2px;background:#e4e0db;transition:background 0.3s ease}
+.qp-line.done{background:#10b981}
+.quiz-stage{max-height:calc(100dvh - 400px);min-height:220px;overflow-y:auto;overscroll-behavior:contain}
+.quiz-card{
+  background:#fff;border-radius:16px;padding:24px 28px;
+  box-shadow:0 2px 12px rgba(45,42,38,0.06);
+}
+.quiz-anim{animation:quizIn 0.35s cubic-bezier(0.4,0,0.2,1)}
+@keyframes quizIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.quiz-q-num{
+  font-family:'Red Hat Display',sans-serif;font-size:0.7rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.12em;color:#8f2bd0;margin-bottom:6px;
+}
+.quiz-q-title{font-family:'Red Hat Display',sans-serif;font-weight:900;font-size:1.25rem;margin-bottom:4px}
+.quiz-q-sub{font-size:0.84rem;color:#6b6560;margin-bottom:16px;line-height:1.5}
+.quiz-options{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.quiz-opt{
+  display:flex;gap:12px;align-items:center;padding:12px 14px;
+  border:2px solid rgba(45,42,38,0.08);border-radius:12px;background:#fff;
+  cursor:pointer;text-align:left;font-family:'Red Hat Text',sans-serif;
+  transition:all 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+.quiz-opt:hover{border-color:rgba(143,43,208,0.5);transform:translateY(-2px);box-shadow:0 6px 18px rgba(75,47,224,0.1)}
+.quiz-opt.selected{
+  border-color:#4b2fe0;background:rgba(75,47,224,0.05);
+  box-shadow:0 4px 14px rgba(75,47,224,0.14);
+}
+.quiz-opt-icon{
+  min-width:42px;height:42px;border-radius:10px;flex-shrink:0;
+  background:linear-gradient(135deg,rgba(31,95,230,0.12),rgba(255,59,107,0.12));
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Red Hat Display',sans-serif;font-weight:800;font-size:0.72rem;color:#4b2fe0;
+}
+.quiz-opt.selected .quiz-opt-icon{background:linear-gradient(135deg,#4b2fe0,#ff3b6b);color:#fff}
+.quiz-opt-label{font-weight:700;font-size:0.86rem;line-height:1.3}
+.quiz-opt-desc{font-size:0.73rem;color:#6b6560;line-height:1.4;margin-top:2px}
+.quiz-nav{display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:12px}
+.quiz-btn{
+  padding:10px 22px;border-radius:10px;border:2px solid rgba(45,42,38,0.12);
+  background:#fff;color:#0a0f1e;font-family:'Red Hat Text',sans-serif;
+  font-weight:700;font-size:0.84rem;cursor:pointer;transition:all 0.25s ease;
+}
+.quiz-btn:hover{border-color:#8f2bd0}
+.quiz-btn:disabled{opacity:0.35;cursor:default;border-color:rgba(45,42,38,0.12)}
+.quiz-btn-primary{
+  border:none;color:#fff;
+  background:linear-gradient(135deg,#1f5fe6 0%,#4b2fe0 40%,#8f2bd0 100%);
+  box-shadow:0 4px 14px rgba(75,47,224,0.25);
+}
+.quiz-btn-primary:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 20px rgba(143,43,208,0.35)}
+/* Result */
+.qr-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.qr-title{font-family:'Red Hat Display',sans-serif;font-weight:900;font-size:1.4rem}
+.qr-why{font-size:0.85rem;color:#48546a;line-height:1.6;margin-bottom:14px}
+.qr-warn{
+  border-left:3px solid #ff3b6b;background:rgba(255,59,107,0.06);
+  padding:10px 14px;border-radius:0 8px 8px 0;font-size:0.8rem;line-height:1.55;
+  color:#0a0f1e;margin-bottom:14px;
+}
+.qr-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.qr-metric{background:#fbfcfe;border:1px solid rgba(45,42,38,0.07);border-radius:10px;padding:10px 12px}
+.qr-metric-label{font-size:0.62rem;text-transform:uppercase;letter-spacing:0.06em;color:#8892a5;font-weight:700}
+.qr-metric-value{font-family:'Red Hat Display',sans-serif;font-weight:900;font-size:1.02rem;margin-top:2px}
+.qr-metric-sub{font-size:0.68rem;color:#6b6560}
+.qr-guidance{margin-bottom:16px}
+.qr-guidance-item{
+  font-size:0.8rem;color:#48546a;line-height:1.55;
+  padding:8px 12px;background:#fbfcfe;border:1px solid rgba(45,42,38,0.06);
+  border-radius:8px;margin-bottom:6px;
+}
+.qr-section-label{
+  font-family:'Red Hat Display',sans-serif;font-size:0.72rem;font-weight:800;
+  text-transform:uppercase;letter-spacing:0.1em;color:#48546a;margin-bottom:8px;
+}
+.qr-tabs{display:flex;gap:6px;margin-bottom:0;flex-wrap:wrap}
+.qr-tab{
+  padding:8px 16px;border:none;border-radius:8px 8px 0 0;cursor:pointer;
+  font-family:'Red Hat Text',sans-serif;font-weight:700;font-size:0.76rem;
+  background:rgba(45,42,38,0.05);color:#6b6560;transition:all 0.2s ease;
+}
+.qr-tab.active{background:#141830;color:#fff}
+.qr-codewrap{position:relative;margin-bottom:16px}
+.qr-code{
+  background:#141830;color:#dfe4f5;border-radius:0 10px 10px 10px;
+  padding:16px;font-size:0.72rem;line-height:1.55;overflow-x:auto;
+  font-family:'Menlo','Consolas',monospace;white-space:pre;margin:0;
+}
+.qr-copy{
+  position:absolute;top:8px;right:8px;padding:5px 12px;border:none;border-radius:6px;
+  background:rgba(255,255,255,0.12);color:#dfe4f5;font-size:0.7rem;font-weight:700;
+  cursor:pointer;font-family:'Red Hat Text',sans-serif;transition:background 0.2s ease;
+}
+.qr-copy:hover{background:rgba(255,255,255,0.22)}
+.qr-note{font-size:0.7rem;color:#8892a5;margin-bottom:14px;line-height:1.5}
+.qr-answers{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.qr-chip{
+  font-size:0.7rem;font-weight:600;padding:4px 10px;border-radius:100px;
+  background:rgba(75,47,224,0.06);color:#4b2fe0;border:1px solid rgba(75,47,224,0.15);
 }
 
 /* ============================================================
@@ -364,17 +528,40 @@ body::before{
   .flow-diagram{flex-wrap:wrap;gap:8px}
   .flow-arrow{display:none}
   .compare-label{width:80px;font-size:0.7rem}
+  .qr-metrics{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:640px){
+  .quiz-options{grid-template-columns:1fr}
+  .quiz-card{padding:18px 16px}
+  .quiz-stage{max-height:calc(100dvh - 380px)}
 }
 @media(max-width:480px){
   .nav-arrows{bottom:16px;gap:12px}
   .nav-btn{width:40px;height:40px}
 }
+
+/* ============================================================
+   REDUCED MOTION -- kill all animation
+   ============================================================ */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:0.01ms !important;
+    animation-delay:0s !important;
+    animation-iteration-count:1 !important;
+    transition-duration:0.01ms !important;
+  }
+}
 </style>
 </head>
 <body>
 
+<!-- SOFT GRADIENT BLOBS (behind content) -->
+<div class="grad-blob grad-blob-1" aria-hidden="true"></div>
+<div class="grad-blob grad-blob-2" aria-hidden="true"></div>
+<div class="grad-blob grad-blob-3" aria-hidden="true"></div>
+
 <!-- PROGRESS BAR -->
-<div class="progress-bar" id="progress-bar" style="width:12.5%"></div>
+<div class="progress-bar" id="progress-bar" style="width:11.12%"></div>
 
 <!-- SLIDES VIEWPORT -->
 <div class="slides-viewport">
@@ -386,21 +573,24 @@ body::before{
     <div class="slide active" data-slide="0">
       <div class="slide-canvas-wrap"><canvas id="canvas-0"></canvas></div>
       <div class="slide-inner" style="position:relative;z-index:2">
-        <div class="slide-number">Slide 1 of 8</div>
+        <div class="slide-number">Slide 1 of 9</div>
         <div class="hero-badge">
           <img src="https://llm-d.ai/img/llm-d-icon.png" alt="llm-d">
           llm-d Open Source Framework
         </div>
         <h1 class="slide-title hero-gradient-text">Choose Your Own<br>Inference Stack</h1>
-        <p class="slide-subtitle">Plan, compare, and build production-ready LLM serving architectures with llm-d. Expert-level infrastructure decisions in minutes, not weeks.</p>
+        <p class="slide-subtitle">Plan, compare, and build production-ready LLM serving architectures with llm-d. Answer five questions and get sizing, routing, and Helm values in minutes, not weeks.</p>
         <div class="slide-body">
+          <div style="margin-bottom:8px">
+            <button class="cta-btn cta-primary" id="hero-quiz-cta" type="button">Take the 5-Question Quiz &rarr;</button>
+          </div>
           <div class="hero-stat-row">
             <div class="hero-stat-item stagger-1">
-              <div class="hero-stat-value" style="color:#f59e0b">&lt; 5 min</div>
+              <div class="hero-stat-value" style="color:#1f5fe6">&lt; 5 min</div>
               <div class="hero-stat-label">Time to Architecture</div>
             </div>
             <div class="hero-stat-item stagger-2">
-              <div class="hero-stat-value" style="color:#f5736c">3</div>
+              <div class="hero-stat-value" style="color:#ff3b6b">3</div>
               <div class="hero-stat-label">Battle-Tested Stacks</div>
             </div>
             <div class="hero-stat-item stagger-3">
@@ -426,7 +616,7 @@ body::before{
     <div class="slide" data-slide="1">
       <div class="slide-canvas-wrap"><canvas id="canvas-1"></canvas></div>
       <div class="slide-inner" style="position:relative;z-index:2">
-        <div class="slide-number">Slide 2 of 8</div>
+        <div class="slide-number">Slide 2 of 9</div>
         <h2 class="slide-title">Production LLM Serving Is Hard</h2>
         <p class="slide-subtitle">Model parameters determine GPU memory, tensor parallelism, routing strategy, and whether disaggregated serving is beneficial. Five decisions shape everything.</p>
         <div class="slide-body">
@@ -469,7 +659,7 @@ body::before{
     <div class="slide" data-slide="2">
       <div class="slide-canvas-wrap"><canvas id="canvas-2"></canvas></div>
       <div class="slide-inner" style="position:relative;z-index:2">
-        <div class="slide-number">Slide 3 of 8</div>
+        <div class="slide-number">Slide 3 of 9</div>
         <h2 class="slide-title">The Inference Stack, Layer by Layer</h2>
         <p class="slide-subtitle">Every request flows through four layers, each one optimized for production inference at scale.</p>
         <div class="slide-body">
@@ -507,7 +697,7 @@ body::before{
           <div class="grid-2" style="max-width:800px;margin:0 auto">
             <div class="card stagger-7" style="padding:20px 24px;text-align:left;opacity:0">
               <div style="font-weight:800;font-size:0.92rem;margin-bottom:8px;color:#8b5cf6">EPP: The Intelligence Layer</div>
-              <div style="font-size:0.84rem;color:#6b6560;line-height:1.6">The Endpoint Picker Plugin delivers 40-70% TTFT improvement for multi-turn workloads through cache-aware routing. It supports load-aware, prefix-cache, LoRA-affinity, and priority scheduling strategies.</div>
+              <div style="font-size:0.84rem;color:#6b6560;line-height:1.6">The Endpoint Picker Plugin routes each request to the pod most likely to already hold its prefix in KV cache, dramatically cutting TTFT for multi-turn workloads. It supports load-aware, prefix-cache, LoRA-affinity, and priority scheduling strategies.</div>
             </div>
             <div class="card stagger-8" style="padding:20px 24px;text-align:left;opacity:0">
               <div style="font-weight:800;font-size:0.92rem;margin-bottom:8px;color:#3b82f6">Disaggregated P/D</div>
@@ -524,7 +714,7 @@ body::before{
     <div class="slide" data-slide="3">
       <div class="slide-canvas-wrap"><canvas id="canvas-3"></canvas></div>
       <div class="slide-inner" style="position:relative;z-index:2">
-        <div class="slide-number">Slide 4 of 8</div>
+        <div class="slide-number">Slide 4 of 9</div>
         <h2 class="slide-title">Which Stack Fits You?</h2>
         <p class="slide-subtitle">Your model size and GPU budget determine the architecture. The decision tree maps every combination to a recommended stack.</p>
         <div class="slide-body">
@@ -536,12 +726,30 @@ body::before{
     </div>
 
     <!-- ============================================================
-         SLIDE 5: THREE STACKS COMPARED
+         SLIDE 5: THE 5-QUESTION QUIZ
          ============================================================ -->
     <div class="slide" data-slide="4">
       <div class="slide-canvas-wrap"><canvas id="canvas-4"></canvas></div>
       <div class="slide-inner" style="position:relative;z-index:2">
-        <div class="slide-number">Slide 5 of 8</div>
+        <div class="slide-number">Slide 5 of 9</div>
+        <h2 class="slide-title">Build Your Stack: <span class="hero-gradient-text">5 Questions</span></h2>
+        <p class="slide-subtitle" style="margin-bottom:24px">Answer five questions and get a complete llm-d architecture: GPU sizing, EPP routing strategy, Helm values, and deployment guidance.</p>
+        <div class="slide-body">
+          <div class="quiz-shell">
+            <div class="quiz-progress" id="quiz-progress" aria-label="Quiz progress"></div>
+            <div class="quiz-stage" id="quiz-stage"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         SLIDE 6: THREE STACKS COMPARED
+         ============================================================ -->
+    <div class="slide" data-slide="5">
+      <div class="slide-canvas-wrap"><canvas id="canvas-5"></canvas></div>
+      <div class="slide-inner" style="position:relative;z-index:2">
+        <div class="slide-number">Slide 6 of 9</div>
         <h2 class="slide-title">Three Reference Architectures</h2>
         <p class="slide-subtitle">From MVP to hyperscale, each stack is battle-tested and production-ready.</p>
         <div class="slide-body">
@@ -632,10 +840,10 @@ body::before{
     <!-- ============================================================
          SLIDE 6: TECHNOLOGY RADAR
          ============================================================ -->
-    <div class="slide" data-slide="5">
-      <div class="slide-canvas-wrap"><canvas id="canvas-5"></canvas></div>
+    <div class="slide" data-slide="6">
+      <div class="slide-canvas-wrap"><canvas id="canvas-6"></canvas></div>
       <div class="slide-inner" style="position:relative;z-index:2">
-        <div class="slide-number">Slide 6 of 8</div>
+        <div class="slide-number">Slide 7 of 9</div>
         <h2 class="slide-title">Technology Radar</h2>
         <p class="slide-subtitle">Where each llm-d component sits on the adoption curve. From proven production staples to emerging capabilities.</p>
         <div class="slide-body">
@@ -681,10 +889,10 @@ body::before{
     <!-- ============================================================
          SLIDE 7: MIGRATION PATHS
          ============================================================ -->
-    <div class="slide" data-slide="6">
-      <div class="slide-canvas-wrap"><canvas id="canvas-6"></canvas></div>
+    <div class="slide" data-slide="7">
+      <div class="slide-canvas-wrap"><canvas id="canvas-7"></canvas></div>
       <div class="slide-inner" style="position:relative;z-index:2">
-        <div class="slide-number">Slide 7 of 8</div>
+        <div class="slide-number">Slide 8 of 9</div>
         <h2 class="slide-title">Migration Paths to llm-d</h2>
         <p class="slide-subtitle">Wherever you are today, there is a tested path forward. Effort estimates and rollback strategies for every source framework.</p>
         <div class="slide-body">
@@ -747,10 +955,10 @@ body::before{
     <!-- ============================================================
          SLIDE 8: GET STARTED
          ============================================================ -->
-    <div class="slide" data-slide="7">
-      <div class="slide-canvas-wrap"><canvas id="canvas-7"></canvas></div>
+    <div class="slide" data-slide="8">
+      <div class="slide-canvas-wrap"><canvas id="canvas-8"></canvas></div>
       <div class="slide-inner" style="position:relative;z-index:2">
-        <div class="slide-number">Slide 8 of 8</div>
+        <div class="slide-number">Slide 9 of 9</div>
         <h2 class="slide-title">Deploy Your Stack in Minutes</h2>
         <p class="slide-subtitle">llm-d is a CNCF Sandbox project. 100% open source, zero vendor lock-in, Kubernetes-native from day one. Your inference stack, your way.</p>
         <div class="slide-body">
@@ -763,9 +971,9 @@ body::before{
             <div style="color:#0a0f1e;font-weight:600">kubectl get pods -n llm-serving -w</div>
           </div>
           <div class="stagger-2" style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-bottom:40px;opacity:0">
-            <a class="cta-primary" href="https://github.com/llm-d" target="_blank">Star on GitHub &#9733;</a>
-            <a class="cta-secondary" href="https://llm-d.ai" target="_blank">Read the Docs</a>
-            <a class="cta-secondary" href="https://markellr-redhat.github.io/llm-d-content-hub/" target="_blank">Content Hub</a>
+            <a class="cta-btn cta-primary" href="https://github.com/llm-d" target="_blank">Star on GitHub &#9733;</a>
+            <a class="cta-btn cta-secondary" href="https://llm-d.ai" target="_blank">Read the Docs</a>
+            <a class="cta-btn cta-secondary" href="https://markellr-redhat.github.io/llm-d-content-hub/" target="_blank">Content Hub</a>
           </div>
           <div class="stagger-3" style="display:flex;gap:32px;justify-content:center;flex-wrap:wrap;margin-bottom:24px;opacity:0">
             <div style="text-align:center">
@@ -854,6 +1062,10 @@ function goToSlide(idx){
 
 prevBtn.addEventListener('click',function(){goToSlide(currentSlide-1)});
 nextBtn.addEventListener('click',function(){goToSlide(currentSlide+1)});
+progressBar.style.width=(100/totalSlides)+'%';
+
+var heroQuizCta=document.getElementById('hero-quiz-cta');
+if(heroQuizCta)heroQuizCta.addEventListener('click',function(){goToSlide(4)});
 
 // Keyboard
 document.addEventListener('keydown',function(e){
@@ -879,6 +1091,7 @@ document.addEventListener('touchend',function(e){
 /* ============================================================
    UTILITY
    ============================================================ */
+var prefersReduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 var dpr=window.devicePixelRatio||1;
 function sizeCanvas(canvas,w,h){
   canvas.width=w*dpr;canvas.height=h*dpr;
@@ -900,7 +1113,7 @@ document.addEventListener('visibilitychange',function(){
 var slideCanvases=[];
 var slideParticles=[];
 var PARTICLE_COLORS=[
-  'rgba(245,158,11,','rgba(245,115,108,','rgba(59,130,246,',
+  'rgba(31,95,230,','rgba(255,59,107,','rgba(59,130,246,',
   'rgba(16,185,129,','rgba(139,92,246,','rgba(99,102,241,'
 ];
 
@@ -984,17 +1197,17 @@ function drawAllParticles(){
     }
   });
 
-  if(!document.hidden)safeRAF(drawAllParticles);
+  if(!document.hidden&&!prefersReduced)safeRAF(drawAllParticles);
 }
-safeRAF(drawAllParticles);
+if(!prefersReduced)safeRAF(drawAllParticles);
 
 /* ============================================================
    SLIDE-SPECIFIC TRIGGER ANIMATIONS
    ============================================================ */
 function triggerSlideAnimation(idx){
   if(idx===3)drawDecisionTree();
-  if(idx===4)animateCompareBars();
-  if(idx===5)drawTechRadar();
+  if(idx===5)animateCompareBars();
+  if(idx===6)drawTechRadar();
 }
 
 /* ============================================================
@@ -1018,7 +1231,7 @@ function drawDecisionTree(){
   var W=rect.width,H=rect.height||380;
   var ctx=sizeCanvas(canvas,W,H);
 
-  var amber='#f59e0b',green='#10b981',blue='#3b82f6',purple='#8b5cf6',coral='#f5736c',text='#0a0f1e',secondary='#6b6560';
+  var amber='#8f2bd0',green='#10b981',blue='#3b82f6',purple='#8b5cf6',coral='#ff3b6b',text='#0a0f1e',secondary='#6b6560';
 
   // Floating decision particles
   var decisionParticles=[];
@@ -1079,7 +1292,7 @@ function drawDecisionTree(){
     // Root node
     var rootOpacity=Math.min(1,ease*3);
     ctx.globalAlpha=rootOpacity;
-    roundRect(350*sx,10,200*sx,50,12,'rgba(245,158,11,0.1)',amber);
+    roundRect(350*sx,10,200*sx,50,12,'rgba(143,43,208,0.1)',amber);
     drawText('What model size?',450*sx,35,'700 '+Math.max(11,14*sx)+'px "Red Hat Display"',text);
 
     // Level 1 branches
@@ -1104,11 +1317,11 @@ function drawDecisionTree(){
     var l2Opacity=Math.min(1,Math.max(0,(ease-0.35)*4));
     ctx.globalAlpha=l2Opacity;
     drawArrow(180*sx,144,180*sx,185,secondary);
-    roundRect(90*sx,180,180*sx,40,10,'rgba(245,115,108,0.06)',coral);
+    roundRect(90*sx,180,180*sx,40,10,'rgba(255,59,107,0.06)',coral);
     drawText('Latency target?',180*sx,200,'600 '+Math.max(9,12*sx)+'px "Red Hat Display"',coral);
 
     drawArrow(450*sx,144,450*sx,185,secondary);
-    roundRect(360*sx,180,180*sx,40,10,'rgba(245,115,108,0.06)',coral);
+    roundRect(360*sx,180,180*sx,40,10,'rgba(255,59,107,0.06)',coral);
     drawText('Latency target?',450*sx,200,'600 '+Math.max(9,12*sx)+'px "Red Hat Display"',coral);
 
     drawArrow(720*sx,144,720*sx,185,secondary);
@@ -1146,13 +1359,13 @@ function drawDecisionTree(){
     // Bottom summary
     var l4Opacity=Math.min(1,Math.max(0,(ease-0.75)*5));
     ctx.globalAlpha=l4Opacity;
-    roundRect(150*sx,340,600*sx,32,8,'rgba(245,158,11,0.06)','rgba(245,158,11,0.2)');
+    roundRect(150*sx,340,600*sx,32,8,'rgba(143,43,208,0.06)','rgba(143,43,208,0.2)');
     drawText('Every path uses vLLM + EPP + Gateway API: the core llm-d stack is always the same',450*sx,356,'600 '+Math.max(9,11*sx)+'px "Red Hat Text"',amber);
 
     ctx.globalAlpha=1;
 
     if(progress<1)safeRAF(animate);
-    else{
+    else if(!prefersReduced){
       // Keep particles flowing after tree is drawn
       safeRAF(function loopParticles(){
         ctx.clearRect(0,0,W,H);
@@ -1169,7 +1382,7 @@ function drawDecisionTree(){
         }
         // Redraw the static tree
         ctx.globalAlpha=1;
-        roundRect(350*sx,10,200*sx,50,12,'rgba(245,158,11,0.1)',amber);
+        roundRect(350*sx,10,200*sx,50,12,'rgba(143,43,208,0.1)',amber);
         drawText('What model size?',450*sx,35,'700 '+Math.max(11,14*sx)+'px "Red Hat Display"',text);
         drawArrow(400*sx,60,180*sx,110,amber);
         roundRect(100*sx,100,160*sx,44,10,'rgba(16,185,129,0.08)',green);
@@ -1184,10 +1397,10 @@ function drawDecisionTree(){
         drawText('405B',720*sx,115,'700 '+Math.max(10,13*sx)+'px "Red Hat Display"',purple);
         drawText('64+ GPUs, FP8',720*sx,132,'500 '+Math.max(8,10*sx)+'px "Red Hat Text"',secondary);
         drawArrow(180*sx,144,180*sx,185,secondary);
-        roundRect(90*sx,180,180*sx,40,10,'rgba(245,115,108,0.06)',coral);
+        roundRect(90*sx,180,180*sx,40,10,'rgba(255,59,107,0.06)',coral);
         drawText('Latency target?',180*sx,200,'600 '+Math.max(9,12*sx)+'px "Red Hat Display"',coral);
         drawArrow(450*sx,144,450*sx,185,secondary);
-        roundRect(360*sx,180,180*sx,40,10,'rgba(245,115,108,0.06)',coral);
+        roundRect(360*sx,180,180*sx,40,10,'rgba(255,59,107,0.06)',coral);
         drawText('Latency target?',450*sx,200,'600 '+Math.max(9,12*sx)+'px "Red Hat Display"',coral);
         drawArrow(720*sx,144,720*sx,185,secondary);
         roundRect(620*sx,180,200*sx,40,10,'rgba(139,92,246,0.06)',purple);
@@ -1212,13 +1425,13 @@ function drawDecisionTree(){
         roundRect(640*sx,262,160*sx,52,12,'rgba(139,92,246,0.15)',purple);
         drawText('Hyperscale',720*sx,280,'800 '+Math.max(10,13*sx)+'px "Red Hat Display"',purple);
         drawText('$40K-100K+/mo',720*sx,297,'500 '+Math.max(8,10*sx)+'px "Red Hat Text"',secondary);
-        roundRect(150*sx,340,600*sx,32,8,'rgba(245,158,11,0.06)','rgba(245,158,11,0.2)');
+        roundRect(150*sx,340,600*sx,32,8,'rgba(143,43,208,0.06)','rgba(143,43,208,0.2)');
         drawText('Every path uses vLLM + EPP + Gateway API: the core llm-d stack is always the same',450*sx,356,'600 '+Math.max(9,11*sx)+'px "Red Hat Text"',amber);
         if(!document.hidden)safeRAF(loopParticles);
       });
     }
   }
-  progress=0;animate();
+  progress=prefersReduced?1:0;animate();
 }
 
 /* ============================================================
@@ -1272,9 +1485,9 @@ function drawTechRadar(){
       var rpx=cx+Math.cos(rp.angle)*rp.radius;
       var rpy=cy+Math.sin(rp.angle)*rp.radius;
       ctx.beginPath();ctx.arc(rpx,rpy,rp.size*2.5,0,Math.PI*2);
-      ctx.fillStyle='rgba(245,158,11,'+(rp.alpha*0.3)+')';ctx.fill();
+      ctx.fillStyle='rgba(143,43,208,'+(rp.alpha*0.3)+')';ctx.fill();
       ctx.beginPath();ctx.arc(rpx,rpy,rp.size,0,Math.PI*2);
-      ctx.fillStyle='rgba(245,158,11,'+rp.alpha+')';ctx.fill();
+      ctx.fillStyle='rgba(143,43,208,'+rp.alpha+')';ctx.fill();
     }
 
     // Draw rings
@@ -1324,7 +1537,7 @@ function drawTechRadar(){
 
     ctx.globalAlpha=1;
     if(progress<1)safeRAF(animate);
-    else{
+    else if(!prefersReduced){
       // Keep radar particles orbiting
       safeRAF(function loop(){
         ctx.clearRect(0,0,size,size);
@@ -1334,9 +1547,9 @@ function drawTechRadar(){
           var rpx=cx+Math.cos(rp.angle)*rp.radius;
           var rpy=cy+Math.sin(rp.angle)*rp.radius;
           ctx.beginPath();ctx.arc(rpx,rpy,rp.size*2.5,0,Math.PI*2);
-          ctx.fillStyle='rgba(245,158,11,'+(rp.alpha*0.3)+')';ctx.fill();
+          ctx.fillStyle='rgba(143,43,208,'+(rp.alpha*0.3)+')';ctx.fill();
           ctx.beginPath();ctx.arc(rpx,rpy,rp.size,0,Math.PI*2);
-          ctx.fillStyle='rgba(245,158,11,'+rp.alpha+')';ctx.fill();
+          ctx.fillStyle='rgba(143,43,208,'+rp.alpha+')';ctx.fill();
         }
         for(var i=rings.length-1;i>=0;i--){
           var r=maxR*((i+1)/rings.length);
@@ -1375,8 +1588,459 @@ function drawTechRadar(){
       });
     }
   }
-  progress=0;animate();
+  progress=prefersReduced?1:0;animate();
 }
+
+/* ============================================================
+   5-QUESTION QUIZ -> ARCHITECTURE + HELM VALUES (Slide 5)
+   ============================================================ */
+var QUIZ_QUESTIONS=[
+  {id:'modelSize',title:"What's your model size?",
+   subtitle:'Parameters determine GPU memory needs, tensor parallelism degree, and whether disaggregated serving pays off.',
+   options:[
+     {value:'7b',  icon:'7B',  label:'7-8B',  desc:'Llama 3.1 8B, Mistral 7B, Qwen2 7B'},
+     {value:'13b', icon:'13B', label:'13B',   desc:'Llama 2 13B, CodeLlama 13B'},
+     {value:'34b', icon:'34B', label:'32-34B',desc:'CodeLlama 34B, Yi 34B, Qwen 32B'},
+     {value:'70b', icon:'70B', label:'70-72B',desc:'Llama 3.1 70B, Qwen2 72B'},
+     {value:'405b',icon:'405', label:'405B',  desc:'Llama 3.1 405B -- multi-node, FP8'}
+   ]},
+  {id:'latencyTarget',title:"What's your latency SLO?",
+   subtitle:'Your TTFT target decides the EPP routing strategy and whether prefill/decode disaggregation is worth its cost.',
+   options:[
+     {value:'best_effort',icon:'BE', label:'Best effort',  desc:'Maximize throughput, latency is secondary'},
+     {value:'p50_500',    icon:'500',label:'< 500ms TTFT', desc:'Standard interactive -- chatbots, search'},
+     {value:'p50_200',    icon:'200',label:'< 200ms TTFT', desc:'Low-latency interactive -- copilots'},
+     {value:'p50_100',    icon:'100',label:'< 100ms TTFT', desc:'Real-time -- voice, streaming apps'}
+   ]},
+  {id:'multiTenancy',title:'Multi-tenant?',
+   subtitle:'Tenancy shapes routing complexity, LoRA adapter scheduling, and how requests are prioritized under load.',
+   options:[
+     {value:'single_single', icon:'1:1', label:'Single model, single team',desc:'One model, one consumer -- simplest setup'},
+     {value:'single_multi',  icon:'1:N', label:'Single model, multi-team', desc:'Shared model with priority tiers'},
+     {value:'multi_lora',    icon:'LoRA',label:'Multi-LoRA',              desc:'Fine-tuned adapters on a shared base'},
+     {value:'multi_isolated',icon:'N:N', label:'Multi-model, isolated',   desc:'Separate namespaces and SLAs per tenant'}
+   ]},
+  {id:'gpuBudget',title:'GPU budget?',
+   subtitle:'GPU count determines replica spread, autoscaling headroom, and whether multi-node parallelism is possible.',
+   options:[
+     {value:'1_2',    icon:'2',  label:'1-2 GPUs',  desc:'Development, prototyping, small production'},
+     {value:'4_8',    icon:'8',  label:'4-8 GPUs',  desc:'Single-node production with TP or replicas'},
+     {value:'16_32',  icon:'32', label:'16-32 GPUs',desc:'Multi-node, disaggregation possible'},
+     {value:'64_plus',icon:'64+',label:'64+ GPUs',  desc:'Hyperscale, full disaggregation'}
+   ]},
+  {id:'platform',title:'Cloud or on-prem?',
+   subtitle:'Platform affects the Gateway API implementation, GPU driver lifecycle, and networking strategy.',
+   options:[
+     {value:'cloud_managed',icon:'CLD',label:'Cloud managed K8s',desc:'EKS, GKE, AKS with managed node pools'},
+     {value:'self_managed', icon:'K8S',label:'Self-managed K8s', desc:'kubeadm, k3s, RKE on your own infra'},
+     {value:'openshift',    icon:'OCP',label:'OpenShift',        desc:'Operator-based lifecycle management'},
+     {value:'bare_metal',   icon:'BM', label:'Bare metal K8s',   desc:'Direct hardware for lowest latency'}
+   ]}
+];
+
+var QUIZ_MODELS={
+  '7b':  {name:'meta-llama/Llama-3.1-8B-Instruct',     maxLen:8192, mem:16, label:'Llama 3.1 8B'},
+  '13b': {name:'meta-llama/Llama-2-13b-chat-hf',       maxLen:4096, mem:26, label:'Llama 2 13B'},
+  '34b': {name:'codellama/CodeLlama-34b-Instruct-hf',  maxLen:16384,mem:68, label:'CodeLlama 34B'},
+  '70b': {name:'meta-llama/Llama-3.1-70B-Instruct',    maxLen:8192, mem:140,label:'Llama 3.1 70B'},
+  '405b':{name:'meta-llama/Llama-3.1-405B-Instruct-FP8',maxLen:8192,mem:405,label:'Llama 3.1 405B (FP8)'}
+};
+var QUIZ_GPUS={
+  a100_80:{label:'A100 80GB',mem:80, costHr:2.21},
+  h100:   {label:'H100 80GB',mem:80, costHr:3.50},
+  h200:   {label:'H200 141GB',mem:141,costHr:4.50}
+};
+var QUIZ_BUDGET_CAP={'1_2':2,'4_8':8,'16_32':32,'64_plus':128};
+var QUIZ_BUDGET_LABEL={'1_2':'1-2 GPUs','4_8':'4-8 GPUs','16_32':'16-32 GPUs','64_plus':'64+ GPUs'};
+
+var quizAnswers={};
+var quizStep=0;
+var quizDone=false;
+var quizTab=0;
+var quizStage=document.getElementById('quiz-stage');
+var quizProgressEl=document.getElementById('quiz-progress');
+
+/* ---- config engine: every combination maps to a coherent stack ---- */
+function quizConfig(s){
+  var model=QUIZ_MODELS[s.modelSize];
+  var gpuType=s.modelSize==='405b'?'h200':((s.gpuBudget==='64_plus'||s.gpuBudget==='16_32')?'h100':'a100_80');
+  var gpu=QUIZ_GPUS[gpuType];
+
+  // Tensor parallelism: fit weights into 80% of aggregate GPU memory
+  var tp;
+  if(s.modelSize==='405b'){tp=8}
+  else{
+    var need=Math.ceil(model.mem/(gpu.mem*0.8));
+    tp=[1,2,4,8].filter(function(v){return v>=need})[0]||8;
+  }
+
+  var baseGpus={'1_2':2,'4_8':8,'16_32':24,'64_plus':80}[s.gpuBudget];
+  var replicas=Math.max(1,Math.floor(baseGpus/tp));
+  var strict=(s.latencyTarget==='p50_100'||s.latencyTarget==='p50_200');
+  if(s.latencyTarget==='p50_100')replicas=Math.max(replicas,3);
+  else if(s.latencyTarget==='p50_200')replicas=Math.max(replicas,2);
+
+  // Disaggregation mirrors the decision tree: 405B always, 34B/70B only for strict SLOs.
+  // Small models hit sub-200ms TTFT without paying the P/D networking tax.
+  var disagg=s.modelSize==='405b'||(strict&&(s.modelSize==='34b'||s.modelSize==='70b'));
+  if(disagg)replicas=Math.max(replicas,2);
+  var prefill=0,decode=0;
+  if(disagg){prefill=Math.max(1,Math.floor(replicas*0.4));decode=Math.max(1,replicas-prefill)}
+
+  var totalGPUs=(disagg?prefill+decode:replicas)*tp;
+  var overBudget=totalGPUs>QUIZ_BUDGET_CAP[s.gpuBudget];
+
+  // EPP scorers
+  var scorers=[];
+  if(s.multiTenancy==='multi_lora')scorers.push({name:'lora-affinity-scorer',weight:3});
+  if(s.latencyTarget!=='best_effort')scorers.push({name:'prefix-cache-scorer',weight:2});
+  scorers.push({name:'load-aware-scorer',weight:1});
+  var routingLabel=scorers.map(function(x){return x.name.replace('-scorer','')}).join(' + ');
+
+  // Autoscaling
+  var hpaMin=disagg?decode:replicas,hpaMax,hpaMetric,hpaThreshold;
+  if(s.gpuBudget==='64_plus'){hpaMax=hpaMin*3;hpaMetric='vllm:num_requests_waiting';hpaThreshold=8}
+  else if(s.gpuBudget==='16_32'){hpaMax=hpaMin*2;hpaMetric='vllm:num_requests_waiting';hpaThreshold=10}
+  else{hpaMax=Math.max(hpaMin+1,Math.ceil(hpaMin*1.5));hpaMetric='vllm:gpu_cache_usage_perc';hpaThreshold=80}
+
+  // Illustrative perf + cost
+  var perf={
+    '7b':  {ttft:strict?'50-150ms':'150-350ms', tps:'50-80 tok/s'},
+    '13b': {ttft:strict?'70-180ms':'180-400ms', tps:'40-65 tok/s'},
+    '34b': {ttft:disagg?'80-180ms':'120-400ms', tps:'30-50 tok/s'},
+    '70b': {ttft:disagg?'80-200ms':'150-500ms', tps:'25-45 tok/s'},
+    '405b':{ttft:'150-350ms',                   tps:'15-30 tok/s'}
+  }[s.modelSize];
+  var costLow=Math.round(totalGPUs*gpu.costHr*730*0.7);
+  var costHigh=Math.round(totalGPUs*gpu.costHr*730);
+
+  // Stack tier -- consistent with the reference architectures on the next slide
+  var tier;
+  if(s.modelSize==='405b'||s.gpuBudget==='64_plus')tier={id:'hyperscale',name:'Hyperscale',cls:'tag-hyperscale'};
+  else if(disagg)tier={id:'enterprise-pd',name:'Enterprise + P/D Disaggregation',cls:'tag-enterprise'};
+  else if((s.modelSize==='7b'||s.modelSize==='13b')&&!strict&&(s.gpuBudget==='1_2'||s.gpuBudget==='4_8')&&s.multiTenancy==='single_single')
+    tier={id:'startup-mvp',name:'Startup MVP',cls:'tag-starter'};
+  else tier={id:'enterprise-prod',name:'Enterprise Production',cls:'tag-enterprise'};
+
+  return {
+    model:model,gpu:gpu,gpuType:gpuType,tp:tp,replicas:replicas,strict:strict,
+    disagg:disagg,prefill:prefill,decode:decode,totalGPUs:totalGPUs,overBudget:overBudget,
+    scorers:scorers,routingLabel:routingLabel,
+    hpaMin:hpaMin,hpaMax:hpaMax,hpaMetric:hpaMetric,hpaThreshold:hpaThreshold,
+    ttft:perf.ttft,tps:perf.tps,costLow:costLow,costHigh:costHigh,tier:tier
+  };
+}
+
+function quizWhy(s,cfg){
+  var parts=[];
+  if(s.modelSize==='405b'){
+    parts.push('A 405B-class model only works with FP8 weights and 8-way tensor parallelism, so this is a multi-node deployment on '+cfg.totalGPUs+'x '+cfg.gpu.label+'.');
+  }else if(cfg.tp>1){
+    parts.push(cfg.model.label+' needs TP='+cfg.tp+' ('+cfg.tp+'x '+cfg.gpu.label+' per replica) to hold weights plus a production-sized KV cache.');
+  }else{
+    parts.push(cfg.model.label+' fits on a single '+cfg.gpu.label+' per replica, which keeps the topology simple and the cost low.');
+  }
+  if(cfg.disagg){
+    parts.push('Your latency SLO justifies prefill/decode disaggregation: compute-bound prefill and memory-bandwidth-bound decode scale independently, connected by NIXL KV transfer.');
+  }else if(s.latencyTarget==='best_effort'){
+    parts.push('With best-effort latency the EPP routes purely on load, squeezing maximum throughput out of every replica.');
+  }else{
+    parts.push('Cache-aware EPP routing ('+cfg.routingLabel+') hits your TTFT target without the operational cost of disaggregation.');
+  }
+  return parts.join(' ');
+}
+
+function quizGuidance(s,cfg){
+  var g=[];
+  if(cfg.disagg)g.push('P/D disaggregation doubles your operational surface and needs fast interconnect (25Gbps+, ideally RDMA) between prefill and decode pools. Start with a '+cfg.prefill+':'+cfg.decode+' prefill:decode ratio and tune it against your real prompt/generation length mix.');
+  if(s.latencyTarget!=='best_effort')g.push('Prefix-cache-aware routing sends requests to pods with a warm KV cache. For multi-turn and shared-system-prompt workloads this is where most of the TTFT win comes from.');
+  if(cfg.tp>1)g.push('TP='+cfg.tp+' requires the GPUs of each replica to share NVLink/NVSwitch on one node. Schedule with a nodeSelector or GPU operator affinity so a replica never spans nodes.');
+  if(s.multiTenancy==='multi_lora')g.push('LoRA adapters share the base model weights; the EPP routes each request to a replica that already has the target adapter loaded. Register each adapter as an InferenceModel pointing at the shared pool.');
+  if(s.multiTenancy==='single_multi')g.push('Give each team an InferenceModel with an appropriate criticality (Critical / Standard / Sheddable). Under load the EPP sheds low-criticality traffic first, protecting production SLOs.');
+  if(s.multiTenancy==='multi_isolated')g.push('For hard isolation, deploy one InferencePool per tenant namespace with its own ResourceQuota, NetworkPolicy, and autoscaler. Tenants share nothing but the cluster.');
+  if(s.modelSize==='405b')g.push('Multi-node serving lives or dies on the interconnect: use InfiniBand or RoCE between nodes, and keep all eight GPUs of each replica on NVSwitch within a node.');
+  if(s.platform==='openshift')g.push('On OpenShift, the NVIDIA GPU Operator manages drivers and the Node Feature Discovery operator labels GPU nodes; Gateway API comes from the Istio-based service mesh.');
+  else if(s.platform==='cloud_managed')g.push('Use a dedicated GPU node pool with taints/tolerations so system workloads never land on GPU nodes; the cloud provider handles driver installation.');
+  else if(s.platform==='bare_metal')g.push('On bare metal you own the drivers and the load balancer: install the NVIDIA container toolkit + device plugin, and use MetalLB (or equivalent) to give the Gateway an external address.');
+  else g.push('Self-managed clusters need the NVIDIA device plugin and container toolkit on every GPU node; pin driver versions in your node image to avoid surprise upgrades.');
+  g.push('Cost figures are illustrative, based on public on-demand '+cfg.gpu.label+' pricing (~$'+cfg.gpu.costHr.toFixed(2)+'/GPU-hr). Reserved or spot capacity typically cuts this 30-70%.');
+  return g;
+}
+
+/* ---- config file generation ---- */
+function quizSlug(cfg){return cfg.model.name.split('/').pop().toLowerCase()}
+
+function quizHelmValues(s,cfg){
+  var L=[];
+  var gpuRes='nvidia.com/gpu';
+  L.push('# llm-d Helm values.yaml -- '+cfg.tier.name);
+  L.push('# '+cfg.model.label+' on '+cfg.totalGPUs+'x '+cfg.gpu.label+' (illustrative sizing)');
+  L.push('');
+  L.push('model:');
+  L.push('  name: "'+cfg.model.name+'"');
+  L.push('  maxModelLen: '+cfg.model.maxLen);
+  L.push('');
+  L.push('serving:');
+  L.push('  image: ghcr.io/llm-d/llm-d:latest');
+  L.push('  tensorParallelSize: '+cfg.tp);
+  L.push('  enablePrefixCaching: true');
+  if(s.modelSize==='405b')L.push('  quantization: fp8');
+  if(s.multiTenancy==='multi_lora'){
+    L.push('  enableLoRA: true');
+    L.push('  maxLoraRank: 64');
+  }
+  L.push('');
+  if(cfg.disagg){
+    L.push('disaggregatedServing:');
+    L.push('  enabled: true');
+    L.push('  kvTransfer:');
+    L.push('    connector: nixl');
+    L.push('  prefill:');
+    L.push('    replicas: '+cfg.prefill);
+    L.push('    resources:');
+    L.push('      limits:');
+    L.push('        '+gpuRes+': "'+cfg.tp+'"');
+    L.push('  decode:');
+    L.push('    replicas: '+cfg.decode);
+    L.push('    resources:');
+    L.push('      limits:');
+    L.push('        '+gpuRes+': "'+cfg.tp+'"');
+  }else{
+    L.push('replicas: '+cfg.replicas);
+    L.push('');
+    L.push('resources:');
+    L.push('  limits:');
+    L.push('    '+gpuRes+': "'+cfg.tp+'"');
+  }
+  L.push('');
+  L.push('epp:');
+  L.push('  enabled: true');
+  L.push('  image: ghcr.io/llm-d/llm-d-inference-scheduler:latest');
+  L.push('  scorers:');
+  cfg.scorers.forEach(function(sc){
+    L.push('    - name: '+sc.name);
+    L.push('      weight: '+sc.weight);
+  });
+  if(s.multiTenancy==='single_multi'){
+    L.push('  saturationDetector:');
+    L.push('    enabled: true   # shed Sheddable-criticality traffic first');
+  }
+  L.push('');
+  L.push('gateway:');
+  L.push('  enabled: true');
+  if(s.platform==='openshift')L.push('  className: openshift-default');
+  else L.push('  className: istio   # or kgateway / your provider\'s Gateway API class');
+  L.push('');
+  L.push('monitoring:');
+  L.push('  serviceMonitor:');
+  L.push('    enabled: true');
+  L.push('  prometheusRule:');
+  L.push('    enabled: true');
+  L.push('');
+  L.push('autoscaling:');
+  L.push('  enabled: true');
+  if(cfg.disagg)L.push('  # scales the decode pool; scale prefill on prefill queue depth separately');
+  L.push('  minReplicas: '+cfg.hpaMin);
+  L.push('  maxReplicas: '+cfg.hpaMax);
+  L.push('  metric: "'+cfg.hpaMetric+'"');
+  L.push('  threshold: '+cfg.hpaThreshold);
+  return L.join('\n');
+}
+
+function quizVllmArgs(s,cfg){
+  var flags=[
+    '--model '+cfg.model.name,
+    '--tensor-parallel-size '+cfg.tp,
+    '--max-model-len '+cfg.model.maxLen,
+    '--enable-prefix-caching'
+  ];
+  if(s.multiTenancy==='multi_lora'){flags.push('--enable-lora');flags.push('--max-lora-rank 64')}
+  if(s.modelSize==='405b')flags.push('--quantization fp8');
+  flags.push('--gpu-memory-utilization 0.92');
+  flags.push('--max-num-seqs 256');
+  flags.push('--port 8000');
+  flags.push('--served-model-name '+quizSlug(cfg));
+  var L=[];
+  L.push('# vLLM engine arguments (per worker pod)');
+  L.push('');
+  L.push('python -m vllm.entrypoints.openai.api_server \\');
+  flags.forEach(function(f,i){
+    L.push('  '+f+(i<flags.length-1?' \\':''));
+  });
+  if(cfg.disagg){
+    L.push('');
+    L.push('# P/D disaggregation: llm-d launches separate prefill and decode');
+    L.push('# pods and wires them together with NIXL-based KV transfer:');
+    L.push('#   prefill: --kv-transfer-config \'{"kv_connector":"NixlConnector","kv_role":"kv_producer"}\'');
+    L.push('#   decode:  --kv-transfer-config \'{"kv_connector":"NixlConnector","kv_role":"kv_consumer"}\'');
+  }
+  return L.join('\n');
+}
+
+function quizInstall(s,cfg){
+  var L=[];
+  L.push('# 1. Add the llm-d Helm repo');
+  L.push('helm repo add llm-d https://llm-d.github.io/llm-d-deployer');
+  L.push('helm repo update');
+  L.push('');
+  L.push('# 2. Install into its own namespace with the generated values');
+  L.push('kubectl create namespace llm-serving');
+  L.push('helm install '+cfg.tier.id+' llm-d/llm-d -n llm-serving -f values.yaml');
+  L.push('');
+  L.push('# 3. Watch the pods come up');
+  L.push('kubectl get pods -n llm-serving -w');
+  L.push('');
+  L.push('# 4. Find the gateway address and send a test request');
+  L.push('kubectl get gateway -n llm-serving');
+  L.push('curl http://<GATEWAY_ADDRESS>/v1/completions \\');
+  L.push('  -H \'Content-Type: application/json\' \\');
+  L.push('  -d \'{"model":"'+quizSlug(cfg)+'","prompt":"Hello, llm-d!","max_tokens":32}\'');
+  return L.join('\n');
+}
+
+/* ---- rendering ---- */
+function renderQuizProgress(){
+  if(!quizProgressEl)return;
+  var html='';
+  for(var i=0;i<QUIZ_QUESTIONS.length;i++){
+    var done=quizDone||i<quizStep;
+    html+='<div class="qp-dot'+(done?' done':(i===quizStep?' active':''))+'">'+(done?'&#10003;':(i+1))+'</div>';
+    if(i<QUIZ_QUESTIONS.length-1)html+='<div class="qp-line'+(done?' done':'')+'"></div>';
+  }
+  quizProgressEl.innerHTML=html;
+}
+
+function renderQuiz(){
+  if(!quizStage)return;
+  renderQuizProgress();
+  if(quizDone){renderQuizResult();return}
+  var q=QUIZ_QUESTIONS[quizStep];
+  var selected=quizAnswers[q.id]||'';
+  var opts=q.options.map(function(o){
+    return '<button type="button" class="quiz-opt'+(o.value===selected?' selected':'')+'" data-q="'+q.id+'" data-v="'+o.value+'">'+
+      '<span class="quiz-opt-icon">'+o.icon+'</span>'+
+      '<span><span class="quiz-opt-label">'+o.label+'</span><br><span class="quiz-opt-desc">'+o.desc+'</span></span>'+
+    '</button>';
+  }).join('');
+  var last=quizStep===QUIZ_QUESTIONS.length-1;
+  quizStage.innerHTML=
+    '<div class="quiz-card quiz-anim">'+
+      '<div class="quiz-q-num">Question '+(quizStep+1)+' of '+QUIZ_QUESTIONS.length+'</div>'+
+      '<div class="quiz-q-title">'+q.title+'</div>'+
+      '<div class="quiz-q-sub">'+q.subtitle+'</div>'+
+      '<div class="quiz-options">'+opts+'</div>'+
+      '<div class="quiz-nav">'+
+        '<button type="button" class="quiz-btn" id="quiz-back"'+(quizStep===0?' style="visibility:hidden"':'')+'>&larr; Back</button>'+
+        (last
+          ?'<button type="button" class="quiz-btn quiz-btn-primary" id="quiz-next"'+(selected?'':' disabled')+'>Generate My Architecture &rarr;</button>'
+          :'<button type="button" class="quiz-btn quiz-btn-primary" id="quiz-next"'+(selected?'':' disabled')+'>Next &rarr;</button>')+
+      '</div>'+
+    '</div>';
+  quizStage.querySelectorAll('.quiz-opt').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      quizAnswers[btn.getAttribute('data-q')]=btn.getAttribute('data-v');
+      if(quizStep<QUIZ_QUESTIONS.length-1){
+        quizStage.querySelectorAll('.quiz-opt').forEach(function(b){b.classList.toggle('selected',b===btn)});
+        setTimeout(function(){quizStep++;renderQuiz()},prefersReduced?0:260);
+      }else{
+        renderQuiz();
+      }
+    });
+  });
+  var back=document.getElementById('quiz-back');
+  if(back)back.addEventListener('click',function(){if(quizStep>0){quizStep--;renderQuiz()}});
+  var next=document.getElementById('quiz-next');
+  if(next)next.addEventListener('click',function(){
+    if(!quizAnswers[q.id])return;
+    if(last){quizDone=true;quizTab=0;renderQuiz()}
+    else{quizStep++;renderQuiz()}
+  });
+}
+
+function renderQuizResult(){
+  var s=quizAnswers;
+  var cfg=quizConfig(s);
+  var labelMap={};
+  QUIZ_QUESTIONS.forEach(function(q){q.options.forEach(function(o){labelMap[q.id+':'+o.value]=o.label})});
+
+  var chips=QUIZ_QUESTIONS.map(function(q){
+    return '<span class="qr-chip">'+labelMap[q.id+':'+s[q.id]]+'</span>';
+  }).join('');
+
+  var warn='';
+  if(cfg.overBudget){
+    warn='<div class="qr-warn"><strong>Budget check:</strong> this combination needs at least '+
+      cfg.totalGPUs+' GPUs ('+(cfg.disagg?cfg.prefill+'P + '+cfg.decode+'D':cfg.replicas)+' replicas x TP='+cfg.tp+
+      ') -- more than the '+QUIZ_BUDGET_LABEL[s.gpuBudget]+' you selected. The plan below is the minimum viable footprint: '+
+      'either grow the budget, relax the latency SLO, or pick a smaller model.</div>';
+  }
+
+  var metrics=[
+    {l:'Total GPUs',v:cfg.totalGPUs,sub:cfg.gpu.label},
+    {l:'Tensor Parallel',v:'TP='+cfg.tp,sub:cfg.tp+' GPU'+(cfg.tp>1?'s':'')+' per replica'},
+    {l:'Replicas',v:cfg.disagg?cfg.prefill+'P + '+cfg.decode+'D':cfg.replicas,sub:cfg.disagg?'Disaggregated P/D':'Unified serving'},
+    {l:'Est. Cost',v:'$'+cfg.costLow.toLocaleString()+'-'+cfg.costHigh.toLocaleString()+'/mo',sub:'Illustrative, on-demand'},
+    {l:'TTFT (p50)',v:cfg.ttft,sub:'Illustrative estimate'},
+    {l:'EPP Routing',v:'<span style="font-size:0.8rem;line-height:1.35;display:inline-block">'+cfg.routingLabel+'</span>',sub:'Scorer chain'}
+  ].map(function(m){
+    return '<div class="qr-metric"><div class="qr-metric-label">'+m.l+'</div><div class="qr-metric-value">'+m.v+'</div><div class="qr-metric-sub">'+m.sub+'</div></div>';
+  }).join('');
+
+  var guidance=quizGuidance(s,cfg).map(function(t){return '<div class="qr-guidance-item">'+t+'</div>'}).join('');
+
+  var tabs=['Helm values.yaml','vLLM args','Install'].map(function(t,i){
+    return '<button type="button" class="qr-tab'+(i===quizTab?' active':'')+'" data-tab="'+i+'">'+t+'</button>';
+  }).join('');
+
+  quizStage.innerHTML=
+    '<div class="quiz-card quiz-anim" style="text-align:left">'+
+      '<div class="qr-head"><span class="tag '+cfg.tier.cls+'">'+cfg.tier.name+'</span><span class="qr-title">'+cfg.model.label+' on llm-d</span></div>'+
+      '<div class="qr-answers">'+chips+'</div>'+
+      warn+
+      '<div class="qr-why"><strong>Why this stack?</strong> '+quizWhy(s,cfg)+'</div>'+
+      '<div class="qr-metrics">'+metrics+'</div>'+
+      '<div class="qr-guidance"><div class="qr-section-label">Deployment guidance</div>'+guidance+'</div>'+
+      '<div class="qr-section-label">Generated configuration</div>'+
+      '<div class="qr-tabs">'+tabs+'</div>'+
+      '<div class="qr-codewrap"><button type="button" class="qr-copy" id="qr-copy">Copy</button><pre class="qr-code" id="qr-code"></pre></div>'+
+      '<div class="qr-note">Values are a starting point for the llm-d Helm chart -- validate against the chart version you deploy. Performance and cost figures are illustrative, not benchmarks.</div>'+
+      '<div class="quiz-nav">'+
+        '<button type="button" class="quiz-btn" id="quiz-restart">&#8635; Start Over</button>'+
+        '<button type="button" class="quiz-btn" id="quiz-edit">Edit Answers</button>'+
+      '</div>'+
+    '</div>';
+
+  var codeEl=document.getElementById('qr-code');
+  function setTab(i){
+    quizTab=i;
+    var gen=[quizHelmValues,quizVllmArgs,quizInstall][i];
+    codeEl.textContent=gen(s,cfg);
+    quizStage.querySelectorAll('.qr-tab').forEach(function(b,bi){b.classList.toggle('active',bi===i)});
+  }
+  setTab(quizTab);
+  quizStage.querySelectorAll('.qr-tab').forEach(function(b){
+    b.addEventListener('click',function(){setTab(parseInt(b.getAttribute('data-tab'),10))});
+  });
+  document.getElementById('qr-copy').addEventListener('click',function(){
+    var btn=this,txt=codeEl.textContent;
+    function ok(){btn.textContent='Copied!';setTimeout(function(){btn.textContent='Copy'},1600)}
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(ok,function(){})
+    }else{
+      var ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);
+      ta.select();try{document.execCommand('copy');ok()}catch(e){}
+      document.body.removeChild(ta);
+    }
+  });
+  document.getElementById('quiz-restart').addEventListener('click',function(){
+    quizAnswers={};quizStep=0;quizDone=false;quizTab=0;renderQuiz();
+  });
+  document.getElementById('quiz-edit').addEventListener('click',function(){
+    quizDone=false;quizStep=0;renderQuiz();
+  });
+}
+
+renderQuiz();
 
 /* ============================================================
    INITIAL TRIGGER
